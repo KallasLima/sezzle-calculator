@@ -48,17 +48,22 @@ npm run build
 
 Open `frontend/coverage/index.html` for the HTML report. `coverage-summary.json` and `lcov.info` provide machine-readable results. Tests cover the API client and user interactions; the DOM bootstrap is excluded from frontend unit coverage. Generated reports, dependencies, and builds are ignored by Git.
 
-Verified October 2, 2026, on Windows with Go 1.27.1 and Node 24.19.0:
+Automated checks rerun October 2, 2026, after the test reliability and comment changes, on Windows with Go 1.27.1 and Node 24.19.0:
 
 | Check | Result |
 | --- | --- |
 | Go unit/handler tests | 76 cases passed; arithmetic and HTTP packages each have 100% statement coverage. |
-| Go total coverage | 90%; the small server startup function is exercised by live integration rather than unit tests. |
-| Frontend tests | 66 passed; 100% statements, lines, and functions; 99.45% branches. |
+| Go total coverage | 90%; the small server startup function is not unit tested. |
+| Frontend tests | 66 passed, including three consecutive `npm run test:coverage` runs with no timeout override; 100% statements, lines, and functions; 99.45% branches. |
 | Static/build checks | `go vet`, `go build`, TypeScript checking, and Vite production build passed. |
-| Live API | 28 cases passed directly against Go and through the production preview proxy. |
-| Browser integration | Real Go responses delayed by 1.5 seconds: rapid multi-step chains, ordered requests, AC during an intermediate request, errors/retry, and duplicate prevention passed in Chromium. Focused-button Enter/Space and Enter outside the keypad also passed. |
-| Responsive UI | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked against the reference. All keys fit on narrow screens without page overflow. |
+
+Earlier live verification on October 2, 2026, was not rerun for this test/comment/documentation-only pass:
+
+| Check | Earlier result |
+| --- | --- |
+| Live API (`536377c`) | 28 cases passed directly against Go and through the production preview proxy. |
+| Browser integration (`9cdca88`) | Real Go responses delayed by 1.5 seconds: rapid multi-step chains, ordered requests, AC during an intermediate request, errors/retry, and duplicate prevention passed in Chromium. Focused-button Enter/Space and Enter outside the keypad also passed. |
+| Responsive UI (`9cdca88`) | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked. All keys fit without page overflow; the approved design was preserved. |
 
 Coverage is a dated verification snapshot, not a guarantee of every possible behavior. The commands above regenerate the reports for future changes.
 
@@ -140,4 +145,4 @@ The backend uses only the Go standard library. Vite handles local development/bu
 
 Ordinary IEEE 754 binary floating-point arithmetic is used in both Go (`float64`) and JavaScript (`number`). Decimal fractions are not always exact: `0.1 + 0.2` returns `0.30000000000000004`; integers beyond `Number.MAX_SAFE_INTEGER` may lose precision. Results are not arbitrarily rounded. Overflow is rejected, while ordinary finite underflow and floating-point rounding follow the runtime's behavior. This is not a financial decimal calculator.
 
-The [supplied reference](docs/design-reference.png) guides the lavender surfaces, purple display, rounded keypad, and typography. The application uses React controls and CSS, never the image as its interface. The complete heading is a single text element. The [prompt record](PROMPTS.md) preserves the implementation request and identifies privacy redactions.
+The [supplied reference](docs/design-reference.png) guides the lavender surfaces, purple display, rounded keypad, and typography. The application uses React controls and CSS, never the image as its interface. The complete heading is a single text element. The [prompt record](PROMPTS.md) covers implementation and follow-up requests, identifies privacy redactions, and lists the separate planning/image-generation material still needed for full AI-assistance disclosure.

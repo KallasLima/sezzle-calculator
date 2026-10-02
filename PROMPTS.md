@@ -1,6 +1,17 @@
 # Prompt record
 
-User prompts are reproduced verbatim below, except explicitly marked privacy redactions. The supplied image is preserved at [docs/design-reference.png](docs/design-reference.png); it is a design reference, not an application asset. Local environment instruction envelopes are not assessment prompts.
+This is the implementation-chat prompt log, not a complete record of all AI assistance. It covers the initial implementation request, the review-fix request, and the test reliability/documentation follow-up. User prompts below are verbatim except explicitly marked privacy redactions. Local environment instruction envelopes are not assessment prompts.
+
+## Disclosure scope and outstanding originals
+
+Separate AI assistance contributed to planning, prompt drafting, image generation, and code review. To complete the disclosure, the following originals still need to be included alongside this log:
+
+- The original planning, architecture, prompt-drafting, and review exchanges from the separate **Prepare Sezzle coding challenge** conversation.
+- The six actual image-generation/edit prompts: the initial two-input design, the replacement dark keypad, the Sezzle-inspired lavender keypad, the wordmark addition, the matching-typography edit, and the final capitalization/font edit. They are saved as `calculator-image-prompt.txt` and `calculator-image-prompt-v2.txt` through `calculator-image-prompt-v6.txt` in that conversation's artifacts, with their referenced input images.
+
+These original sources were located during this pass but are not transcribed into this implementation log. The planning conversation also contains a consolidated first-attempt image prompt explicitly described as a reconstruction; it is not the actual generation history and must not replace it. No claim is made that this log covers all AI assistance.
+
+The supplied final image is preserved at [docs/design-reference.png](docs/design-reference.png); it is a design reference, not an application asset or a substitute for its original generation prompts.
 
 ## Initial implementation request (2026-10-02)
 
@@ -126,3 +137,36 @@ First add deterministic regression tests that demonstrate both failures. Cover r
 Run the existing frontend and backend checks, then verify the real UI against the real backend with delayed network responses, keyboard input, and mobile sizing. Coverage alone is not proof that the behavior works. Update the README if the documented loading behavior changes, and record this prompt in the existing prompt log.
 
 After each coherent, verified step, commit and push to the existing private GitHub repository using small Conventional Commits. Finish with a concise explanation of the state handling, the validation performed, and any remaining limitations.
+
+## Test reliability and documentation request (2026-10-02)
+
+```text
+Please make a focused pass on the comments, documentation, and remaining test reliability issue. The documentation is already useful, so improve accuracy and clarity without expanding it unnecessarily.
+
+1. Make the numeric-overflow regression test reliable.
+
+In Calculator.chaining.test.tsx, the test that types 309 digits exceeded the default five-second timeout on two consecutive coverage runs. It passed in about 5.4 seconds with a temporary longer timeout, and all 66 tests passed with that override.
+
+Keep the same behavioral assertions. Use deterministic timer handling for this long input sequence, or a justified timeout scoped to this test. Avoid raising the global timeout or weakening the test. Run the normal documented coverage command afterward, without a command-line timeout override, and confirm it passes consistently.
+
+2. Clarify the subtle queue convention.
+
+In useCalculator.ts, evaluate treats the presence of a queue as chain mode, including an empty queue. Add a short comment explaining that convention and why the queue is passed through subsequent evaluations. Keep comments focused on intent and invariants rather than restating the code.
+
+3. Correct the HTTP response-write comment.
+
+The comment in writeJSON currently says a write failure means the client disconnected. That is too absolute: a write deadline or another connection error can also cause failure. Explain that a response write can fail after headers have been sent and that the handler cannot safely replace it with another response. Keep the change proportionate; this does not require a logging framework or a broader error-handling rewrite.
+
+4. Keep the README's verification claims reproducible.
+
+After the test fix, rerun the relevant checks and update the verification snapshot to reflect what actually ran and passed. Keep setup commands, API examples, calculator behavior, architecture rationale, and floating-point limitations concise and accurate. Do not present earlier verification as a fresh run.
+
+5. Make the prompt record's scope explicit.
+
+PROMPTS.md currently records implementation and review-fix prompts. Planning and image-generation assistance also contributed to this project. Clearly identify what the existing record covers and what still needs to be supplied for the company's disclosure requirement. Append this prompt exactly as received.
+
+Only record prompts you can actually retrieve from your conversation or supplied artifacts. Do not invent missing prompts, substitute a polished reconstruction for an original, or claim the record covers all AI assistance when it does not. Label any supplied reconstruction as a reconstruction. Finish the independent code and documentation work, then tell me exactly which original planning or image-generation material is missing so I can supply it.
+
+Preserve the approved UI, arithmetic behavior, and current architecture. Run the frontend tests, coverage, type checking, and build after the test change. Keep each verified change in a small Conventional Commit and push to the existing private repository. Finish with a concise summary of the edits, actual validation results, and any outstanding disclosure material.
+
+```

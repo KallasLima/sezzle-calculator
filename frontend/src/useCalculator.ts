@@ -126,6 +126,8 @@ export function useCalculator() {
     }
 
     const controller = new AbortController();
+    // A supplied queue means chain mode even when empty. Passing the same queue
+    // through later evaluations preserves input order across backend responses.
     const active: Evaluation = queue
       ? { kind: 'chain', controller, queue }
       : { kind: 'equals', controller };

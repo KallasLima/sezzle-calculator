@@ -84,7 +84,8 @@ func writeError(w http.ResponseWriter, status int, code, message string) {
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	// Every response has a known JSON shape and finite numeric values. A write
-	// failure means the client disconnected; the response cannot be retried here.
+	// Responses have a known JSON shape and finite numeric values. A write can
+	// still fail (for example, on a deadline or connection error) after headers
+	// are sent, so the handler cannot safely replace it with another response.
 	_ = json.NewEncoder(w).Encode(value)
 }
