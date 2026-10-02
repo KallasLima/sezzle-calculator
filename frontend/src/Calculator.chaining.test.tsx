@@ -174,14 +174,24 @@ describe('input across unresolved chained calculations', () => {
   });
 
   it('stops queued actions at invalid numeric input without sending an invalid request', async () => {
-    const user = userEvent.setup();
-    const first = deferred();
-    calculateMock.mockReturnValueOnce(first.promise);
-    render(<Calculator />);
-    await user.keyboard(`2+3*${'9'.repeat(309)}=7+2=`);
-    await act(async () => first.resolve(5));
-    expect(screen.getByRole('alert')).toHaveTextContent('finite number');
-    expect(screen.getByRole('alert')).toHaveTextContent(/queued input.*clear/i);
-    expect(calculateMock).toHaveBeenCalledTimes(1);
+    // Keep every key event, but advance user-event and Testing Library's
+    // completion timers without depending on wall-clock scheduling.
+    vi.useFakeTimers();
+    try {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const first = deferred();
+      calculateMock.mockReturnValueOnce(first.promise);
+      render(<Calculator />);
+      const typing = user.keyboard(`2+3*${'9'.repeat(309)}=7+2=`);
+      await vi.runAllTimersAsync();
+      await typing;
+      await act(async () => first.resolve(5));
+      expect(screen.getByRole('alert')).toHaveTextContent('finite number');
+      expect(screen.getByRole('alert')).toHaveTextContent(/queued input.*clear/i);
+      expect(calculateMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
   });
 });
