@@ -1,0 +1,80 @@
+import { useEffect } from 'react';
+import { symbols, useCalculator } from './useCalculator';
+import type { CalculatorAction } from './useCalculator';
+import type { Operation } from './api';
+
+const keyboardOperations: Record<string, Operation> = { '+': 'add', '-': 'subtract', '*': 'multiply', '/': 'divide' };
+
+function BackspaceIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 32 26" fill="none">
+    <path d="M12 3h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H12L2 13 12 3Z" />
+    <path d="m16 9 8 8m0-8-8 8" />
+  </svg>;
+}
+
+export function Calculator() {
+  const calculator = useCalculator();
+  const { act, entry, pending, hasSecondOperand, expression, status, error } = calculator;
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+      let action: CalculatorAction | undefined;
+      if (/^[0-9]$/.test(event.key)) action = { type: 'digit', value: event.key };
+      else if (event.key === '.') action = { type: 'decimal' };
+      else if (keyboardOperations[event.key]) action = { type: 'operator', value: keyboardOperations[event.key] };
+      else if (event.key === '=' || event.key === 'Enter') action = { type: 'equals' };
+      else if (event.key === 'Backspace') action = { type: 'backspace' };
+      else if (event.key === 'Escape') action = { type: 'clear' };
+      if (action) { event.preventDefault(); act(action); }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [act]);
+
+  const operatorButton = (operation: Operation) => <button
+    key={operation} type="button" className="key key--operator"
+    aria-label={operation[0].toUpperCase() + operation.slice(1)}
+    aria-pressed={pending?.operation === operation}
+    disabled={status === 'loading'}
+    onClick={() => act({ type: 'operator', value: operation })}
+  >{symbols[operation]}</button>;
+
+  const digitButton = (digit: string) => <button key={digit} type="button"
+    className={`key${digit === '0' ? ' key--zero' : ''}`}
+    onClick={() => act({ type: 'digit', value: digit })}
+  >{digit}</button>;
+
+  const shownExpression = pending && hasSecondOperand ? `${expression} ${entry}` : expression;
+  const numberSize = entry.length > 18 ? 'display__number--long' : entry.length > 10 ? 'display__number--medium' : '';
+
+  return <main className="calculator" aria-labelledby="calculator-heading">
+    <h1 id="calculator-heading">Sezzle calculator</h1>
+    <section className={`display${error ? ' display--error' : ''}`} aria-label="Calculator display" aria-busy={status === 'loading'}>
+      <div className="display__content">
+        <p className="display__expression" aria-label="Expression">{shownExpression || '\u00a0'}</p>
+        <output className={`display__number ${numberSize}`} aria-label="Result" aria-live="polite" aria-atomic="true">{entry}</output>
+      </div>
+      <div className="display__feedback">
+        {error ? <p role="alert">{error}</p> : <p role="status">{status === 'loading' ? 'Calculating…' : status === 'success' ? 'Calculated' : '\u00a0'}</p>}
+      </div>
+    </section>
+    <div className="keypad" role="group" aria-label="Calculator keypad">
+      <button type="button" className="key key--utility" aria-label="All clear" onClick={() => act({ type: 'clear' })}>AC</button>
+      <button type="button" className="key key--utility" aria-label="Toggle sign" onClick={() => act({ type: 'sign' })}>±</button>
+      <button type="button" className="key key--utility" aria-label="Backspace" onClick={() => act({ type: 'backspace' })}><BackspaceIcon /></button>
+      {operatorButton('divide')}
+      {['7', '8', '9'].map(digitButton)}
+      {operatorButton('multiply')}
+      {['4', '5', '6'].map(digitButton)}
+      {operatorButton('subtract')}
+      {['1', '2', '3'].map(digitButton)}
+      {operatorButton('add')}
+      {digitButton('0')}
+      <button type="button" className="key" aria-label="Decimal point" onClick={() => act({ type: 'decimal' })}>.</button>
+      <button type="button" className="key key--equals" aria-label="Equals" disabled={status === 'loading'} onClick={() => act({ type: 'equals' })}>=</button>
+    </div>
+  </main>;
+}

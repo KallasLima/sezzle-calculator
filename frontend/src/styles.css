@@ -1,0 +1,90 @@
+:root {
+  font-family: 'Nunito', ui-rounded, system-ui, sans-serif;
+  color: #2e1054;
+  background: #f8f5ff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --surface: #fcfaff;
+  --lavender: #eee7ff;
+  --operator: #e2d7fb;
+  --violet: #8000eb;
+  --purple: #442461;
+  --border: #e9dfff;
+  --gap: clamp(9px, 2.2vw, 12px);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+button { font: inherit; -webkit-tap-highlight-color: transparent; }
+#root { min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; }
+.calculator { width: min(100%, 430px); }
+h1 { font-size: clamp(26px, 6.5vw, 32px); font-weight: 400; line-height: 1.2; margin: 0 10px 14px; white-space: nowrap; letter-spacing: -0.035em; }
+
+.display {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 186px;
+  border-radius: 24px;
+  background: radial-gradient(ellipse at 68% 55%, #603386 0, transparent 75%), linear-gradient(125deg, #392646, #502975);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding: 26px 22px 12px;
+  margin-bottom: 18px;
+}
+.display::before, .display::after { content: ''; position: absolute; border-radius: 50%; z-index: -1; pointer-events: none; }
+.display::before { width: 225px; height: 225px; right: 8%; top: -172px; background: linear-gradient(115deg, #613482, #31a59f); opacity: .7; }
+.display::after { width: 280px; height: 265px; left: -80px; bottom: -196px; background: linear-gradient(90deg, #593877, #8221d5); opacity: .85; }
+.display__content { min-width: 0; text-align: right; }
+.display__expression { margin: 0 0 2px; color: #e1bdfb; font-size: 26px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.display__number { display: block; font-size: 70px; line-height: 1.2; font-weight: 600; letter-spacing: -0.045em; white-space: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.display__number--medium { font-size: 40px; }
+.display__number--long { font-size: 27px; letter-spacing: -0.02em; }
+.display__feedback { margin-top: 9px; min-height: 19px; font-size: 12px; line-height: 1.4; text-align: right; color: #f0ddff; }
+.display__feedback p { margin: 0; }
+.display--error { box-shadow: inset 0 0 0 2px #b779d9; }
+.display--error .display__feedback { text-align: left; color: #fff; }
+.keypad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); padding: 0 5px; }
+.key {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 0; min-height: 68px; height: 75px; padding: 0;
+  color: #2c0c50; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 19px; font-size: 36px; font-weight: 600;
+  box-shadow: 0 2px 5px #49246105;
+  cursor: pointer; touch-action: manipulation;
+  transition: background-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+.key--utility { background: var(--lavender); color: var(--violet); font-size: 29px; }
+.key--utility svg { width: 34px; height: 28px; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.key--operator { background: var(--operator); color: var(--violet); font-size: 43px; }
+.key--equals { background: linear-gradient(135deg, #563073, #41235f); color: #fff; font-size: 44px; border-color: #70458b; }
+.key--zero { grid-column: span 2; }
+.key[aria-pressed='true'] { box-shadow: inset 0 0 0 2px #8d4edd; }
+.key:focus-visible { outline: 3px solid #6822b6; outline-offset: 3px; }
+.key--equals:focus-visible { outline-color: #8d39e1; }
+.key:active:not(:disabled) { transform: scale(.96); }
+.key:disabled { opacity: .6; cursor: wait; }
+@media (hover: hover) { .key:hover:not(:disabled) { filter: brightness(.96); } }
+@media (max-width: 480px) {
+  #root { padding: 20px 14px 24px; }
+  .calculator { align-self: center; }
+  .display { min-height: clamp(174px, 25svh, 218px); }
+  .key { height: clamp(67px, 10.5svh, 91px); }
+}
+@media (max-width: 340px) {
+  #root { padding-inline: 10px; }
+  h1 { font-size: 26px; margin-left: 6px; }
+  .display { padding-inline: 17px; border-radius: 22px; }
+  .display__number { font-size: 61px; }
+  .display__number--medium { font-size: 33px; }
+  .display__number--long { font-size: 25px; }
+  .display__expression { font-size: 23px; }
+  .keypad { padding-inline: 3px; }
+  .key { border-radius: 17px; font-size: 32px; }
+  .key--utility { font-size: 27px; }
+  .key--operator, .key--equals { font-size: 38px; }
+}
+@media (prefers-reduced-motion: reduce) { .key { transition: none; } }
