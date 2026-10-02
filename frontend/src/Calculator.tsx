@@ -27,6 +27,8 @@ export function Calculator() {
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+      // Leave Enter/Space to the focused key's native click behavior.
+      if ((event.key === 'Enter' || event.key === ' ') && target instanceof HTMLElement && target.closest('.keypad button')) return;
       let action: CalculatorAction | undefined;
       if (/^[0-9]$/.test(event.key)) action = { type: 'digit', value: event.key };
       else if (event.key === '.') action = { type: 'decimal' };

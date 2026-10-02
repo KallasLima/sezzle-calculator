@@ -244,7 +244,7 @@ describe('calculator keypad', () => {
     expect(calculateMock).not.toHaveBeenCalled();
   });
 
-  it('supports all requested keyboard controls and prevents focused-button Enter from duplicating', async () => {
+  it('supports keyboard shortcuts and native Enter on a focused digit', async () => {
     calculateMock.mockResolvedValueOnce(24).mockResolvedValueOnce(0.5);
     render(<Calculator />);
     await userEvent.setup().keyboard('12*2{Enter}');
@@ -253,7 +253,7 @@ describe('calculator keypad', () => {
     await waitFor(() => expect(result()).toHaveTextContent(/^0.5$/));
     button('7').focus();
     await userEvent.setup().keyboard('{Enter}');
-    expect(result()).toHaveTextContent(/^0.5$/);
+    expect(result()).toHaveTextContent(/^7$/);
     expect(calculateMock).toHaveBeenCalledTimes(2);
   });
 

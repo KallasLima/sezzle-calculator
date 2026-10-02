@@ -100,3 +100,29 @@ Finish with a short summary of the implementation, actual test and coverage resu
 
 Don't make assumptions, instead, pause and ask me if anything is not clear.
 
+
+## Review fixes request (2026-10-02)
+
+The app looks good. Please address these two review findings and improve the state handling around them;
+
+1. Fix input during chained calculations.
+
+With about 1.5 seconds of API latency, entering 2 + 3 x 4 before the intermediate response arrives changes the expression to 2 + 34. Pressing equals then returns 36 instead of the expected left-to-right result of 20.
+
+In useCalculator.ts, entering the next digit cancels the intermediate request and edits the previous operand. The next operator is lost with that request. Make chained evaluation an explicit state transition. Preserve subsequent input in order, including the next operand, operators, and equals, so normal fast typing works without requiring the user to wait between keys. Keep arithmetic on the backend.
+
+AC must immediately reset everything and discard queued input. Late responses must not restore cleared or superseded state. Failed intermediate requests must not silently apply queued input to the wrong operands. Keep request ordering and duplicate-submission protection correct.
+
+2. Fix Enter on focused buttons.
+
+After calculating 24, focusing AC and pressing Enter does not clear the calculator, although Space does. Calculator.tsx intercepts Enter globally and prevents the button's native activation.
+
+Let Enter and Space activate the focused keypad button exactly once. Keep Enter as the equals shortcut when focus is outside a keypad button. Update the test that currently expects Enter to ignore the focused button.
+
+Keep the changes focused. Use KISS, YAGNI, and the dependency principle from Clean Architecture. Refactor the hook enough to make entry, pending operations, and asynchronous transitions easy to follow. Preserve the approved design and documented behavior outside these fixes. No new dependencies or additional architectural layers should be needed.
+
+First add deterministic regression tests that demonstrate both failures. Cover rapid chained input with unresolved responses, AC during a chain, late responses, and failure/recovery. Test focused-button keyboard activation through realistic user events.
+
+Run the existing frontend and backend checks, then verify the real UI against the real backend with delayed network responses, keyboard input, and mobile sizing. Coverage alone is not proof that the behavior works. Update the README if the documented loading behavior changes, and record this prompt in the existing prompt log.
+
+After each coherent, verified step, commit and push to the existing private GitHub repository using small Conventional Commits. Finish with a concise explanation of the state handling, the validation performed, and any remaining limitations.

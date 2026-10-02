@@ -116,7 +116,7 @@ Unknown fields and trailing JSON values are rejected. Request bodies are limited
 - AC clears the entire calculation, including any pending request. A late response cannot restore cleared state.
 - While calculating, operators and equals are disabled to prevent duplicate submissions. Editing a number cancels the pending response and keeps the edited operands available for a new calculation. Errors preserve operands so they can be corrected or retried.
 - Long numbers scroll inside the display, keeping the latest digits visible without moving the keypad. Focus the display to scroll it with arrow keys.
-- Keyboard input supports digits, `.`, `+`, `-`, `*`, `/`, Enter or `=`, Backspace, and Escape to clear. All keypad buttons are real focusable controls with accessible names.
+- Keyboard input supports digits, `.`, `+`, `-`, `*`, `/`, `=`, Backspace, and Escape to clear. Enter and Space activate the focused keypad button once; Enter acts as equals when focus is outside the keypad buttons. All keypad buttons are real focusable controls with accessible names.
 
 ## Design rationale
 
