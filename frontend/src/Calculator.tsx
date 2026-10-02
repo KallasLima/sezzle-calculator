@@ -14,7 +14,8 @@ function BackspaceIcon() {
 
 export function Calculator() {
   const calculator = useCalculator();
-  const { act, entry, pending, hasSecondOperand, expression, status, error } = calculator;
+  const { act, entry, pending, hasSecondOperand, expression, status, error, isChaining } = calculator;
+  const submissionDisabled = status === 'loading' && !isChaining;
   const numberDisplay = useRef<HTMLOutputElement>(null);
 
   useLayoutEffect(() => {
@@ -46,7 +47,7 @@ export function Calculator() {
     key={operation} type="button" className="key key--operator"
     aria-label={operation[0].toUpperCase() + operation.slice(1)}
     aria-pressed={pending?.operation === operation}
-    disabled={status === 'loading'}
+    disabled={submissionDisabled}
     onClick={() => act({ type: 'operator', value: operation })}
   >{symbols[operation]}</button>;
 
@@ -82,7 +83,7 @@ export function Calculator() {
       {operatorButton('add')}
       {digitButton('0')}
       <button type="button" className="key" aria-label="Decimal point" onClick={() => act({ type: 'decimal' })}>.</button>
-      <button type="button" className="key key--equals" aria-label="Equals" disabled={status === 'loading'} onClick={() => act({ type: 'equals' })}>=</button>
+      <button type="button" className="key key--equals" aria-label="Equals" disabled={submissionDisabled} onClick={() => act({ type: 'equals' })}>=</button>
     </div>
   </main>;
 }

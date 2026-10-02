@@ -54,10 +54,10 @@ Verified October 2, 2026, on Windows with Go 1.27.1 and Node 24.19.0:
 | --- | --- |
 | Go unit/handler tests | 76 cases passed; arithmetic and HTTP packages each have 100% statement coverage. |
 | Go total coverage | 90%; the small server startup function is exercised by live integration rather than unit tests. |
-| Frontend tests | 51 passed; 100% statements, lines, and functions; 98.68% branches. |
+| Frontend tests | 66 passed; 100% statements, lines, and functions; 99.45% branches. |
 | Static/build checks | `go vet`, `go build`, TypeScript checking, and Vite production build passed. |
 | Live API | 28 cases passed directly against Go and through the production preview proxy. |
-| Browser integration | Real keypad and keyboard input, chaining, result continuation, errors/retry, duplicate prevention, clear/edit during delayed requests passed in Chromium. |
+| Browser integration | Real Go responses delayed by 1.5 seconds: rapid multi-step chains, ordered requests, AC during an intermediate request, errors/retry, and duplicate prevention passed in Chromium. Focused-button Enter/Space and Enter outside the keypad also passed. |
 | Responsive UI | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked against the reference. All keys fit on narrow screens without page overflow. |
 
 Coverage is a dated verification snapshot, not a guarantee of every possible behavior. The commands above regenerate the reports for future changes.
@@ -113,8 +113,10 @@ Unknown fields and trailing JSON values are rejected. Request bodies are limited
 - A digit after a completed result starts a new calculation. An operator continues from the result.
 - Decimal entry preserves a trailing decimal point and ignores repeated decimal presses. Sign toggling edits the current number; while waiting for a second operand it begins that operand at `-0`.
 - Backspace edits an entry and returns an emptied entry to `0`. While waiting for a second operand it does nothing. After a completed result it starts a fresh entry at `0`.
-- AC clears the entire calculation, including any pending request. A late response cannot restore cleared state.
-- While calculating, operators and equals are disabled to prevent duplicate submissions. Editing a number cancels the pending response and keeps the edited operands available for a new calculation. Errors preserve operands so they can be corrected or retried.
+- During a chained calculation, the keypad stays enabled. Digits, edits, operators, and equals are queued in order while awaiting each backend result. Only one request runs at a time. The display shows the operation being evaluated; queued input appears as its preceding requests complete.
+- AC immediately clears the entire calculation, cancels the pending request, and discards queued input. A late response cannot restore cleared or superseded state.
+- A failed chain keeps the failed operation available for correction or retry and visibly reports that queued input was cleared. Re-enter the continuation after correcting the error; it is never applied to the wrong operands.
+- For an ordinary equals request outside a chain, operators and equals remain disabled to prevent duplicate submissions. Editing a number cancels the pending response and keeps the edited operands available for a new calculation. Errors preserve operands for correction or retry.
 - Long numbers scroll inside the display, keeping the latest digits visible without moving the keypad. Focus the display to scroll it with arrow keys.
 - Keyboard input supports digits, `.`, `+`, `-`, `*`, `/`, `=`, Backspace, and Escape to clear. Enter and Space activate the focused keypad button once; Enter acts as equals when focus is outside the keypad buttons. All keypad buttons are real focusable controls with accessible names.
 
@@ -134,7 +136,7 @@ frontend/src/
   styles.css           responsive reference-based appearance
 ```
 
-The backend uses only the Go standard library. Vite handles local development/builds, and Vitest with Testing Library tests behavior through accessible controls. Request cancellation uses both an `AbortController` and a request-identity guard, because cancellation alone cannot prevent an already-completing response from overwriting a clear or edit. The rounded font ships with the frontend, avoiding a runtime font-service dependency.
+The backend uses only the Go standard library. Vite handles local development/builds, and Vitest with Testing Library tests behavior through accessible controls. The calculator hook separates text entry modes, pending operations, and asynchronous evaluation. A chain owns a simple ordered input queue; replay pauses whenever another backend request starts and resumes after its result. Request cancellation uses both an `AbortController` and a request-identity guard, because cancellation alone cannot prevent an already-completing response from overwriting a clear or edit. The rounded font ships with the frontend, avoiding a runtime font-service dependency.
 
 Ordinary IEEE 754 binary floating-point arithmetic is used in both Go (`float64`) and JavaScript (`number`). Decimal fractions are not always exact: `0.1 + 0.2` returns `0.30000000000000004`; integers beyond `Number.MAX_SAFE_INTEGER` may lose precision. Results are not arbitrarily rounded. Overflow is rejected, while ordinary finite underflow and floating-point rounding follow the runtime's behavior. This is not a financial decimal calculator.
 
