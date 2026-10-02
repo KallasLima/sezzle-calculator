@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { symbols, useCalculator } from './useCalculator';
 import type { CalculatorAction } from './useCalculator';
 import type { Operation } from './api';
@@ -15,6 +15,12 @@ function BackspaceIcon() {
 export function Calculator() {
   const calculator = useCalculator();
   const { act, entry, pending, hasSecondOperand, expression, status, error } = calculator;
+  const numberDisplay = useRef<HTMLOutputElement>(null);
+
+  useLayoutEffect(() => {
+    const display = numberDisplay.current;
+    if (display) display.scrollLeft = display.scrollWidth;
+  }, [entry]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -55,7 +61,7 @@ export function Calculator() {
     <section className={`display${error ? ' display--error' : ''}`} aria-label="Calculator display" aria-busy={status === 'loading'}>
       <div className="display__content">
         <p className="display__expression" aria-label="Expression">{shownExpression || '\u00a0'}</p>
-        <output className={`display__number ${numberSize}`} aria-label="Result" aria-live="polite" aria-atomic="true">{entry}</output>
+        <output ref={numberDisplay} tabIndex={0} className={`display__number ${numberSize}`} aria-label="Result" aria-live="polite" aria-atomic="true">{entry}</output>
       </div>
       <div className="display__feedback">
         {error ? <p role="alert">{error}</p> : <p role="status">{status === 'loading' ? 'Calculating…' : status === 'success' ? 'Calculated' : '\u00a0'}</p>}
@@ -63,7 +69,7 @@ export function Calculator() {
     </section>
     <div className="keypad" role="group" aria-label="Calculator keypad">
       <button type="button" className="key key--utility" aria-label="All clear" onClick={() => act({ type: 'clear' })}>AC</button>
-      <button type="button" className="key key--utility" aria-label="Toggle sign" onClick={() => act({ type: 'sign' })}>±</button>
+      <button type="button" className="key key--utility key--sign" aria-label="Toggle sign" onClick={() => act({ type: 'sign' })}>±</button>
       <button type="button" className="key key--utility" aria-label="Backspace" onClick={() => act({ type: 'backspace' })}><BackspaceIcon /></button>
       {operatorButton('divide')}
       {['7', '8', '9'].map(digitButton)}
