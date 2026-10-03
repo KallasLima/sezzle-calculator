@@ -1,11 +1,11 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Calculator } from './Calculator';
-import { calculate, CalculationError } from './api';
+import { Calculator } from '../Calculator';
+import { calculate, CalculationError } from '../calculatorApi';
 
-vi.mock('./api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('./api')>()),
+vi.mock('../calculatorApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../calculatorApi')>()),
   calculate: vi.fn(),
 }));
 

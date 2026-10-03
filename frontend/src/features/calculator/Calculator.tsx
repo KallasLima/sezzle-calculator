@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
-import { symbols, useCalculator } from './useCalculator';
-import type { CalculatorAction } from './useCalculator';
-import type { Operation } from './api';
+import { useCalculator } from './useCalculator';
+import { operationSymbols } from './operations';
+import type { CalculatorAction, Operation } from './types';
 
 const keyboardOperations: Record<string, Operation> = {
   '+': 'add',
@@ -74,7 +74,7 @@ export function Calculator() {
       disabled={submissionDisabled}
       onClick={() => act({ type: 'operator', value: operation })}
     >
-      {symbols[operation]}
+      {operationSymbols[operation]}
     </button>
   );
 

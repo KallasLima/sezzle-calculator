@@ -1,10 +1,4 @@
-export type Operation = 'add' | 'subtract' | 'multiply' | 'divide';
-
-export interface Calculation {
-  operation: Operation;
-  a: number;
-  b: number;
-}
+import type { Calculation } from './types';
 
 export class CalculationError extends Error {
   constructor(

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { calculate, CalculationError, REQUEST_TIMEOUT_MS } from './api';
+import { calculate, CalculationError, REQUEST_TIMEOUT_MS } from '../calculatorApi';
 
 const input = { operation: 'add' as const, a: 2, b: 3 };
 const signal = () => new AbortController().signal;

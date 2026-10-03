@@ -1,6 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Calculator } from './Calculator';
+import { Calculator } from '../Calculator';
 
 const result = () => screen.getByLabelText('Result');
 const feedback = () => screen.getByRole('status', { name: '' });

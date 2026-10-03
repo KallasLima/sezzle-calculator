@@ -1,22 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { calculate } from './api';
-import type { Operation } from './api';
-
-export const symbols: Record<Operation, string> = {
-  add: '+',
-  subtract: '−',
-  multiply: '×',
-  divide: '÷',
-};
-
-export type CalculatorAction =
-  | { type: 'digit'; value: string }
-  | { type: 'operator'; value: Operation }
-  | { type: 'decimal' }
-  | { type: 'sign' }
-  | { type: 'backspace' }
-  | { type: 'clear' }
-  | { type: 'equals' };
+import { calculate } from './calculatorApi';
+import type { CalculatorAction, Operation } from './types';
+import { operationSymbols } from './operations';
 
 type EntryAction = Extract<CalculatorAction, { type: 'digit' | 'decimal' | 'sign' | 'backspace' }>;
 
@@ -87,7 +72,9 @@ function editEntry(before: CalculatorState, action: EntryAction): CalculatorStat
     ...before,
     entry,
     entryMode,
-    expression: before.pending ? `${before.pending.text} ${symbols[before.pending.operation]}` : '',
+    expression: before.pending
+      ? `${before.pending.text} ${operationSymbols[before.pending.operation]}`
+      : '',
     activity: { status: 'idle' },
   };
 }
@@ -195,8 +182,8 @@ export function useCalculator() {
       entryMode: nextOperation ? 'waiting' : 'result',
       pending: nextOperation ? { operation: nextOperation, operand: result, text: entry } : null,
       expression: nextOperation
-        ? `${entry} ${symbols[nextOperation]}`
-        : `${pending.text} ${symbols[pending.operation]} ${before.entry}`,
+        ? `${entry} ${operationSymbols[nextOperation]}`
+        : `${pending.text} ${operationSymbols[pending.operation]} ${before.entry}`,
       activity: { status: 'success' },
     });
     if (active.kind === 'chain') drain(active.queue);
@@ -238,7 +225,7 @@ export function useCalculator() {
         ...before,
         pending: { operation: action.value, operand, text: before.entry },
         entryMode: 'waiting',
-        expression: `${before.entry} ${symbols[action.value]}`,
+        expression: `${before.entry} ${operationSymbols[action.value]}`,
         activity: { status: 'idle' },
       });
     } else {

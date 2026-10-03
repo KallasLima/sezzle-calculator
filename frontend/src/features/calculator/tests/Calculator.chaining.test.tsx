@@ -1,10 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Calculator } from './Calculator';
-import { calculate } from './api';
+import { Calculator } from '../Calculator';
+import { calculate } from '../calculatorApi';
 
-vi.mock('./api', () => ({ calculate: vi.fn() }));
+vi.mock('../calculatorApi', () => ({ calculate: vi.fn() }));
 const calculateMock = vi.mocked(calculate);
 const result = () => screen.getByLabelText('Result');
 const button = (name: string) => screen.getByRole('button', { name });

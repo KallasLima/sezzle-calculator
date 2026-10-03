@@ -158,7 +158,7 @@ flowchart LR
   HTTP --> Arithmetic[Pure Go arithmetic]
 ```
 
-The dependency direction keeps arithmetic independent of HTTP and React. The Go standard-library handler validates requests and translates results into JSON. The frontend separates accessible controls in `Calculator.tsx`, entry and pending-operation state in `useCalculator.ts`, and HTTP communication in `api.ts`.
+The dependency direction keeps arithmetic independent of HTTP and React. The Go standard-library handler validates requests and translates results into JSON. The frontend calculator lives in `frontend/src/features/calculator/`: `Calculator.tsx` contains accessible controls, `useCalculator.ts` owns entry and pending-operation state, and `calculatorApi.ts` handles HTTP. Feature tests live in `tests/`; shared test setup stays in `src/test/`. Bootstrap and global CSS stay in `src/`; calculator styles live in `calculator.css`.
 
 Numeric entry stays as text to preserve decimal input and distinguish an entered zero from a missing operand. A FIFO queue serializes chained requests; cancellation and a request-identity check prevent late responses from overwriting cleared state. The two-operand API keeps the implementation small without an expression parser or persistence.
 
