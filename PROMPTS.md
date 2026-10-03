@@ -386,3 +386,29 @@ The very long positional config-test cases (`backend/cmd/server/config_test.go:1
 Run the existing normal/coverage suites, TypeScript checking, Go tests/vet/build, and frontend build on the final code. Recheck real delayed chaining, AC/late responses, division-error recovery, focused-button Enter/Space, and320px mobile layout. Keep visual appearance/API behavior unchanged and preserve the previously verified timeout/body-read behavior. Do not raise timeouts, weaken assertions, or broaden coverage exclusions to obtain green checks.
 
 ```
+
+## 8. Deploy reviewed frontend (2026-10-03)
+
+```text
+Use the installed Render plugin to deploy the reviewed frontend to the existing free Static Site:
+
+First inspect the current Git state and Render deployment. If the reviewed frontend is already deployed, verify it instead of creating a duplicate deployment. If main has advanced, inspect the diff: documentation-only changes may be included; materially different application code needs validation before deployment.
+
+Deploy through the supported Render plugin tools, inspecting their actual schemas. Preserve the existing service, free hosting, build configuration, environment variables, and manual-deployment settings. Do not create services, enable paid features, add a payment method, or change hosting providers. The backend's production source did not change in this cleanup, so leave its deployment alone unless you establish a concrete integration problem.
+
+Verify the deployment finishes successfully and serves the reviewed frontend. Confirm the deployed commit and exercise the public app through actual browser controls with the real Go API:
+
+- 12 × 2 = 24.
+- Rapid 2 + 3 × 4 = 20 with simulated network delay, preserving left-to-right chaining.
+- AC during a pending calculation, followed by a new calculation, without an obsolete response changing the result.
+- Division by zero shows a useful error, and correcting the divisor allows retry.
+- Enter and Space activate focused keypad buttons once.
+- Desktop and 320px mobile layouts remain usable, without page overflow, missing assets, or unexpected console errors.
+
+Restore temporary browser/network settings and clean up only your own test resources. Do not repeat the entire local test suite or the real 90-second timeout test unless new changes or failures invalidate the existing evidence.
+
+After successful deployment verification, update the README's statement that the live deployment is unchanged. State exactly what was deployed and verified. Record this actual prompt in PROMPTS.md without rewriting historical prompts. Commit and push these documentation changes as a small Conventional Commit. A documentation-only follow-up commit does not require another frontend deployment; distinguish the deployed application commit from the final repository commit.
+
+Finish with the live URL, deployed commit, final repository commit, verification results, and any concrete remaining blocker. Do not submit the assessment or send any email.
+
+```

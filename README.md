@@ -102,7 +102,9 @@ Local checks rerun October 3, 2026:
 | Integration | Real Go API browser checks passed for delayed chaining, AC/cancellation, division-error recovery, native Enter/Space, and 1440px/320px layouts. |
 | Runner | Windows startup, calculation, Ctrl+C, port release, and temporary-binary cleanup passed. |
 
-Hosted integration and fresh-clone setup were verified on October 2. This readability pass was verified locally; the live deployment is unchanged.
+The reviewed frontend at [`804b95e`](https://github.com/KallasLima/sezzle-calculator/commit/804b95e3791d7de8e5312eb56e159a279dc2cf4c) was deployed to the existing Render Static Site on October 3, 2026. Hosted checks passed for `12 × 2 = 24`, rapid `2 + 3 × 4 = 20` with 1.5-second network latency, AC during a chain followed by `7 + 2 = 9`, division-error recovery, native Enter/Space activation, and 1440px/320px layouts. HTML, JavaScript, CSS, and fonts loaded successfully, with no page overflow or unexpected console/CORS errors.
+
+The Go API remains at [`788250f`](https://github.com/KallasLima/sezzle-calculator/commit/788250f94bf58f8a3074427ef09a5659fa477ffb); it was not redeployed. Existing hosting, environment variables, build configuration, and manual-deployment settings were preserved. The local checks above were not repeated for this deployment. Fresh-clone setup was verified on October 2.
 
 ## API
 
