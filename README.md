@@ -4,9 +4,17 @@ A calculator built with React, TypeScript, and a Go HTTP service. The frontend e
 
 **[Open the live calculator](https://sezzle-calculator-ur1z.onrender.com)** · [Backend health](https://sezzle-calculator-api-bf7n.onrender.com/healthz)
 
-<img src="docs/deployed-calculator.jpg" alt="The deployed Sezzle calculator showing 12 × 2 = 24" width="300">
+The free API can take about a minute to wake up on the first calculation. The display explains a slow request and preserves operands if a retry is needed. The recording below uses a warmed backend.
 
-Try it in 30 seconds: enter `12 × 2 =` to get `24`, press AC, then quickly type `2 + 3 * 4 =` to get `20`. Try `8 ÷ 0 =`, correct the second operand, and retry. Tab to a key and use Enter or Space; Escape clears. The free API can take about a minute to wake up on the first calculation. The display explains a slow request and preserves operands if a retry is needed.
+## Demo
+
+[<img src="docs/demo-preview.gif" alt="Recorded keypad demonstration: enter 12, multiply by 2, and receive 24 from the deployed Go API" width="300">](docs/demo.mp4?raw=true)
+
+[Watch or download the 53-second MP4](docs/demo.mp4?raw=true) · [Live calculator](https://sezzle-calculator-ur1z.onrender.com) · [Still screenshot](docs/deployed-calculator.jpg)
+
+The captioned, silent recording shows real keypad input, left-to-right chaining, keyboard editing, division-by-zero recovery, and the mobile layout. The MP4 is 1080p H.264 (0.94 MB); the 8-second GIF preview is 160 KB. Media links require access to this private repository; download the MP4 if GitHub does not play it inline.
+
+Try it in 30 seconds: enter `12 × 2 =` to get `24`, press AC, then quickly type `2 + 3 * 4 =` to get `20`. Try `8 ÷ 0 =`, correct the second operand, and retry. Tab to a key and use Enter or Space; Escape clears.
 
 ## Run locally
 
@@ -97,7 +105,7 @@ Hosted verification on October 2, 2026, against both services running applicatio
 | Public API | 28 arithmetic/validation cases and 8 health/CORS checks passed, including zero, decimals, missing input, division by zero, overflow, allowed/disallowed origins, and preflight. |
 | Browser integration | Keypad `12 × 2 = 24`; rapid keyboard `2 + 3 × 4 + 6 = 26` with 1.5-second simulated latency and exactly three ordered hosted API requests; division-error correction; focused-button Enter/Space; AC during a delayed intermediate request and recovery all passed. |
 | Slow requests | At 30-second simulated latency, the 8-second message remained readable. A request delayed beyond the deadline aborted at 90 seconds, retained operands, made no automatic retry, and succeeded after explicit retry. |
-| Responsive UI and assets | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked. All 19 keys fit without page overflow; refresh, JavaScript, CSS, and bundled fonts returned 200. No unexpected console or CORS errors. Screenshot above is from the deployed site. |
+| Responsive UI and assets | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked. All 19 keys fit without page overflow; refresh, JavaScript, CSS, and bundled fonts returned 200. No unexpected console or CORS errors. The linked still screenshot is from the deployed site. |
 
 Coverage is a dated verification snapshot, not a guarantee of every possible behavior. The commands above regenerate the reports for future changes.
 

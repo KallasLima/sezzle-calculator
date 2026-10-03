@@ -281,3 +281,35 @@ In response to the request to confirm Render's “My Workspace” for this deplo
 ```text
 Yes
 ```
+
+## Assessment demonstration video (2026-10-02)
+
+Verbatim user request, including trailing blank lines:
+
+```text
+Create a short demonstration video of the completed Sezzle calculator for the assessment reviewer. Do this after both Render deployments are working and verified together.
+
+Record the actual deployed frontend using its real Go backend. Use supported browser/screen-recording tools and free local editing tools already available where practical. This authorizes recording only this application's demo. Do not enable ongoing background capture, record unrelated windows, or use a paid service.
+
+Target a polished 45-60 second MP4, broadly compatible with browsers and common video players. Use clear framing and readable text, ideally a 1080p canvas. Keep the Sezzle calculator design intact. Use short captions without narration or music; do not add generated footage, simulated controls, or fabricated results.
+
+Suggested sequence:
+1. Brief opening: "Sezzle calculator" and "React + TypeScript frontend / Go API" over the real application.
+2. Calculate 12 x 2 = 24 using the visible keypad.
+3. Clear, then demonstrate 2 + 3 x 4 = 20. Caption it "Left-to-right calculation" so the behavior is unambiguous.
+4. Demonstrate keyboard input and one useful editing action, such as backspace or sign toggle.
+5. Calculate 8 / 0 to show the real error. Correct the divisor to 2 and retry to obtain 4.
+6. Show the responsive mobile layout briefly, then end with the actual frontend demo URL and a simple invitation to try it.
+
+Keep the pacing natural and captions brief. Make the actions and results easy to follow rather than cramming in every feature. You may warm the free backend before recording and trim setup or idle time, but do not fabricate responses or imply that a cold start is instant. Keep the free-tier startup limitation documented beside the demo link in the README.
+
+Capture only the application viewport. Exclude account details, browser profiles, unrelated tabs, local paths, developer tools, tokens, and notifications. Use synthetic calculator inputs only. Stop all task-owned recording when finished.
+
+Save the final video as docs/demo.mp4, keeping it reasonably small without making the text blurry. Also create a short lightweight GIF preview from the actual recording for the README. Add a concise demo section with the inline GIF, an accessible description, a link to the MP4, and the live frontend URL. Do not assume a repository MP4 link plays inline; check the actual GitHub rendering and make the video accessible through a working link. Keep the repository private and do not upload the recording to a third-party video platform.
+
+Watch the exported video from start to finish. Verify the captions, arithmetic, error recovery, readable desktop/mobile views, actual URLs, playback, and absence of private information. Inspect the GIF and README rendering too. Report any limitation honestly; a screenshot slideshow is not a recording of the working app.
+
+Preserve application behavior. Record this exact prompt in PROMPTS.md, then commit and push the reviewed demo assets and documentation in a small Conventional Commit. Finish with the video and GIF paths, duration, file sizes, validation performed, and the live demo link.
+
+
+```
