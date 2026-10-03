@@ -2,9 +2,20 @@
 
 A calculator built with React, TypeScript, and a Go HTTP service. The frontend edits numeric input; the backend performs all four arithmetic operations.
 
+**[Open the live calculator](https://sezzle-calculator-ur1z.onrender.com)** · [Backend health](https://sezzle-calculator-api-bf7n.onrender.com/healthz)
+
+<img src="docs/deployed-calculator.jpg" alt="The deployed Sezzle calculator showing 12 × 2 = 24" width="300">
+
+Try it in 30 seconds: enter `12 × 2 =` to get `24`, press AC, then quickly type `2 + 3 * 4 =` to get `20`. Try `8 ÷ 0 =`, correct the second operand, and retry. Tab to a key and use Enter or Space; Escape clears. The free API can take about a minute to wake up on the first calculation. The display explains a slow request and preserves operands if a retry is needed.
+
 ## Run locally
 
 Source access is required because [the repository](https://github.com/KallasLima/sezzle-calculator) is private. An authorized reviewer can clone it with Git or download its ZIP from GitHub and extract it. No database, API keys, or other services are required locally.
+
+```sh
+git clone https://github.com/KallasLima/sezzle-calculator.git
+cd sezzle-calculator
+```
 
 Install [Go 1.26+](https://go.dev/doc/install) and [Node.js 24.15+ with npm](https://nodejs.org/en/download), then reopen your terminal. The tested versions are Go 1.27.1 and Node 24.19.0; the frontend pins Node 24.19.0 for hosting.
 
@@ -79,13 +90,14 @@ Automated checks rerun October 2, 2026, after the hosting configuration and time
 
 The root scripts use Node's standard library and support Windows, macOS, and Linux. Windows was exercised here; macOS and Linux are documented but have not been tested. Two earlier Windows builds were blocked by Defender; the fresh-checkout verification and startup subsequently passed without changing security settings.
 
-Earlier live verification on October 2, 2026, before hosting changes:
+Hosted verification on October 2, 2026, against both services running application commit `3e8278f`:
 
-| Check | Earlier result |
+| Check | Result |
 | --- | --- |
-| Live API (`536377c`) | 28 cases passed directly against Go and through the production preview proxy. |
-| Browser integration (`9cdca88`) | Real Go responses delayed by 1.5 seconds: rapid multi-step chains, ordered requests, AC during an intermediate request, errors/retry, and duplicate prevention passed in Chromium. Focused-button Enter/Space and Enter outside the keypad also passed. |
-| Responsive UI (`9cdca88`) | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked. All keys fit without page overflow; the approved design was preserved. |
+| Public API | 28 arithmetic/validation cases and 8 health/CORS checks passed, including zero, decimals, missing input, division by zero, overflow, allowed/disallowed origins, and preflight. |
+| Browser integration | Keypad `12 × 2 = 24`; rapid keyboard `2 + 3 × 4 + 6 = 26` with 1.5-second simulated latency and exactly three ordered hosted API requests; division-error correction; focused-button Enter/Space; AC during a delayed intermediate request and recovery all passed. |
+| Slow requests | At 30-second simulated latency, the 8-second message remained readable. A request delayed beyond the deadline aborted at 90 seconds, retained operands, made no automatic retry, and succeeded after explicit retry. |
+| Responsive UI and assets | Desktop 1440 × 900, mobile 390 × 844, and narrow 320 × 568 checked. All 19 keys fit without page overflow; refresh, JavaScript, CSS, and bundled fonts returned 200. No unexpected console or CORS errors. Screenshot above is from the deployed site. |
 
 Coverage is a dated verification snapshot, not a guarantee of every possible behavior. The commands above regenerate the reports for future changes.
 
@@ -176,6 +188,7 @@ Both services use this private repository's `main` branch. Commands and output p
 | Setting | Go Web Service | React Static Site |
 | --- | --- | --- |
 | Plan/type | Free Web Service, native Go | Free Static Site |
+| Service ID | `srv-db05qdtg1s2s73cmlao0` | `srv-db05rjid0e5s73a7l5r0` |
 | Root Directory | `backend` | `frontend` |
 | Build Command | `go version && go build -o bin/server ./cmd/server` | `npm ci && npm run build` |
 | Start / Publish | `./bin/server` | `dist` |
@@ -185,6 +198,8 @@ Both services use this private repository's `main` branch. Commands and output p
 | Runtime version | Render's stable Go; check build-log `go version` against `go.mod` | `.node-version` pins `24.19.0` |
 
 The API base has no `/api` suffix. The allowed origin has no path or trailing slash. These configuration values are public, and the browser sends no credentials. No SPA catch-all, database, disk, Docker image, custom domain, or keep-alive service is needed.
+
+The deployed values are `VITE_API_BASE_URL=https://sezzle-calculator-api-bf7n.onrender.com` and `ALLOWED_ORIGIN=https://sezzle-calculator-ur1z.onrender.com`. Render's build logs confirmed Go 1.27.1 on Linux and the pinned Node 24.19.0. The workspace build-minute spending limit is $0; there are no paid service instances.
 
 For a manual redeploy, run verification, commit and push to `main`, then use **Manual Deploy → Deploy latest commit** in each affected service's Render Dashboard. Compare the deployed commit IDs with the intended commit. Changing `VITE_API_BASE_URL` requires rebuilding the static site; changing `ALLOWED_ORIGIN` requires redeploying the backend. Preserve other variables when updating configuration. If origins change, update both sides and verify a browser calculation, not just service status.
 

@@ -273,3 +273,11 @@ https://render.com/docs/faq
 
 
 ```
+
+## Workspace confirmation (2026-10-02)
+
+In response to the request to confirm Render's “My Workspace” for this deployment:
+
+```text
+Yes
+```
