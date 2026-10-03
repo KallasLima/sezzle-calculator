@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { calculate, CalculationError, REQUEST_TIMEOUT_MS } from '../calculatorApi';
+import { requestCalculation, CalculationError, REQUEST_TIMEOUT_MS } from '../calculatorApi';
 
 const input = { operation: 'add' as const, a: 2, b: 3 };
 const signal = () => new AbortController().signal;
@@ -26,7 +26,7 @@ describe('calculator API client', () => {
     const fetchMock = respond({ result: 0 });
     const requestSignal = signal();
 
-    await expect(calculate(input, requestSignal)).resolves.toBe(0);
+    await expect(requestCalculation(input, requestSignal)).resolves.toBe(0);
     expect(fetchMock).toHaveBeenCalledWith('/api/calculate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -44,7 +44,7 @@ describe('calculator API client', () => {
     vi.stubEnv('VITE_API_BASE_URL', origin);
     const fetchMock = respond({ result: 5 });
 
-    await calculate(input, signal());
+    await requestCalculation(input, signal());
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://calculator-api.example/api/calculate',
@@ -56,7 +56,7 @@ describe('calculator API client', () => {
     vi.stubEnv('VITE_API_BASE_URL', '');
     const fetchMock = respond({ result: 5 });
 
-    await calculate(input, signal());
+    await requestCalculation(input, signal());
 
     expect(fetchMock).toHaveBeenCalledWith('/api/calculate', expect.any(Object));
   });
@@ -66,7 +66,7 @@ describe('calculator API client', () => {
     async (result) => {
       respond({ result });
 
-      await expect(calculate(input, signal())).resolves.toBe(result);
+      await expect(requestCalculation(input, signal())).resolves.toBe(result);
     },
   );
 
@@ -75,7 +75,7 @@ describe('calculator API client', () => {
     async (code) => {
       respond({ error: { code, message: 'Useful explanation.' } }, 400);
 
-      await expect(calculate(input, signal())).rejects.toMatchObject({
+      await expect(requestCalculation(input, signal())).rejects.toMatchObject({
         code,
         message: 'Useful explanation.',
       });
@@ -92,7 +92,9 @@ describe('calculator API client', () => {
   ])('rejects invalid success payload %j', async (body) => {
     respond(body);
 
-    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    await expect(requestCalculation(input, signal())).rejects.toMatchObject({
+      code: 'INVALID_RESPONSE',
+    });
   });
 
   it.each([
@@ -103,7 +105,9 @@ describe('calculator API client', () => {
   ])('rejects invalid error payload %j', async (body) => {
     respond(body, 400);
 
-    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    await expect(requestCalculation(input, signal())).rejects.toMatchObject({
+      code: 'INVALID_RESPONSE',
+    });
   });
 
   it('rejects a non-finite result', async () => {
@@ -111,17 +115,19 @@ describe('calculator API client', () => {
       'fetch',
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({ result: Infinity }) }),
     );
-    await expect(calculate(input, signal())).rejects.toBeInstanceOf(CalculationError);
+    await expect(requestCalculation(input, signal())).rejects.toBeInstanceOf(CalculationError);
   });
 
   it('rejects malformed response JSON', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('not json')));
-    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    await expect(requestCalculation(input, signal())).rejects.toMatchObject({
+      code: 'INVALID_RESPONSE',
+    });
   });
 
   it('gives an actionable connection failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
-    await expect(calculate(input, signal())).rejects.toMatchObject({
+    await expect(requestCalculation(input, signal())).rejects.toMatchObject({
       code: 'CONNECTION_FAILED',
       message: expect.stringContaining('Check your connection'),
     });
@@ -129,7 +135,7 @@ describe('calculator API client', () => {
 
   it('reports proxy/service failures even when the body is empty', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })));
-    await expect(calculate(input, signal())).rejects.toMatchObject({
+    await expect(requestCalculation(input, signal())).rejects.toMatchObject({
       code: 'CONNECTION_FAILED',
       message: expect.stringContaining('Please try again'),
     });
@@ -140,7 +146,7 @@ describe('calculator API client', () => {
     const error = new DOMException('Aborted', 'AbortError');
     controller.abort(error);
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error));
-    await expect(calculate(input, controller.signal)).rejects.toBe(error);
+    await expect(requestCalculation(input, controller.signal)).rejects.toBe(error);
   });
 
   it('applies the total timeout while reading the response body and releases its timer', async () => {
@@ -158,7 +164,7 @@ describe('calculator API client', () => {
           }),
       })),
     );
-    const pending = expect(calculate(input, signal())).rejects.toMatchObject({
+    const pending = expect(requestCalculation(input, signal())).rejects.toMatchObject({
       code: 'REQUEST_TIMEOUT',
     });
     await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
@@ -170,7 +176,7 @@ describe('calculator API client', () => {
     vi.useFakeTimers();
     respond({ result: 5 });
 
-    await calculate(input, signal());
+    await requestCalculation(input, signal());
 
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -181,7 +187,9 @@ describe('calculator API client', () => {
   ])('rejects non-finite operands before serialization', async (request) => {
     const fetchMock = respond({ result: 0 });
 
-    await expect(calculate(request, signal())).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    await expect(requestCalculation(request, signal())).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+    });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

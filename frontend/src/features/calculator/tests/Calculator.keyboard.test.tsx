@@ -2,20 +2,20 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Calculator } from '../Calculator';
-import { calculate } from '../calculatorApi';
+import { requestCalculation } from '../calculatorApi';
 
-vi.mock('../calculatorApi', () => ({ calculate: vi.fn() }));
-const calculateMock = vi.mocked(calculate);
+vi.mock('../calculatorApi', () => ({ requestCalculation: vi.fn() }));
+const requestCalculationMock = vi.mocked(requestCalculation);
 const button = (name: string) => screen.getByRole('button', { name });
 const result = () => screen.getByLabelText('Result');
 beforeEach(() => {
-  calculateMock.mockReset();
+  requestCalculationMock.mockReset();
 });
 
 describe('focused keypad keyboard activation', () => {
   it.each(['{Enter}', ' '])('activates AC and other focused buttons once with %j', async (key) => {
     const user = userEvent.setup();
-    calculateMock.mockResolvedValueOnce(24).mockResolvedValueOnce(-4);
+    requestCalculationMock.mockResolvedValueOnce(24).mockResolvedValueOnce(-4);
     render(<Calculator />);
 
     await user.keyboard('12*2=');
@@ -42,8 +42,8 @@ describe('focused keypad keyboard activation', () => {
     await user.keyboard(key);
 
     expect(result()).toHaveTextContent(/^-4$/);
-    expect(calculateMock).toHaveBeenCalledTimes(2);
-    expect(calculateMock).toHaveBeenLastCalledWith(
+    expect(requestCalculationMock).toHaveBeenCalledTimes(2);
+    expect(requestCalculationMock).toHaveBeenLastCalledWith(
       { operation: 'multiply', a: -2, b: 2 },
       expect.any(AbortSignal),
     );
@@ -51,7 +51,7 @@ describe('focused keypad keyboard activation', () => {
 
   it('uses Enter as equals when the display has focus', async () => {
     const user = userEvent.setup();
-    calculateMock.mockResolvedValue(5);
+    requestCalculationMock.mockResolvedValue(5);
     render(<Calculator />);
 
     await user.keyboard('2+3');
@@ -59,6 +59,6 @@ describe('focused keypad keyboard activation', () => {
     await user.keyboard('{Enter}');
 
     expect(result()).toHaveTextContent(/^5$/);
-    expect(calculateMock).toHaveBeenCalledTimes(1);
+    expect(requestCalculationMock).toHaveBeenCalledTimes(1);
   });
 });

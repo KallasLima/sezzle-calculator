@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { calculate } from './calculatorApi';
+import { requestCalculation } from './calculatorApi';
 import type { CalculatorAction, Operation } from './types';
 import { operationSymbols } from './operations';
 
@@ -184,7 +184,7 @@ export function useCalculator() {
 
     let result: number;
     try {
-      result = await calculate(
+      result = await requestCalculation(
         { operation: pending.operation, a: pending.firstOperand, b: secondOperand },
         controller.signal,
       );
