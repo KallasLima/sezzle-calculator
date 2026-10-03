@@ -21,8 +21,17 @@ function BackspaceIcon() {
 
 export function Calculator() {
   const calculator = useCalculator();
-  const { act, entry, pending, hasSecondOperand, expression, status, error, isChaining, isSlow } =
-    calculator;
+  const {
+    dispatchAction,
+    entry,
+    pending,
+    hasSecondOperand,
+    expression,
+    status,
+    error,
+    isChaining,
+    isSlow,
+  } = calculator;
   const submissionDisabled = status === 'loading' && !isChaining;
   const numberDisplay = useRef<HTMLOutputElement>(null);
 
@@ -57,12 +66,12 @@ export function Calculator() {
       else if (event.key === 'Escape') action = { type: 'clear' };
       if (action) {
         event.preventDefault();
-        act(action);
+        dispatchAction(action);
       }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [act]);
+  }, [dispatchAction]);
 
   const operatorButton = (operation: Operation) => (
     <button
@@ -72,7 +81,7 @@ export function Calculator() {
       aria-label={operation[0].toUpperCase() + operation.slice(1)}
       aria-pressed={pending?.operation === operation}
       disabled={submissionDisabled}
-      onClick={() => act({ type: 'operator', value: operation })}
+      onClick={() => dispatchAction({ type: 'operator', value: operation })}
     >
       {operationSymbols[operation]}
     </button>
@@ -83,7 +92,7 @@ export function Calculator() {
       key={digit}
       type="button"
       className={`key${digit === '0' ? ' key--zero' : ''}`}
-      onClick={() => act({ type: 'digit', value: digit })}
+      onClick={() => dispatchAction({ type: 'digit', value: digit })}
     >
       {digit}
     </button>
@@ -141,7 +150,7 @@ export function Calculator() {
           type="button"
           className="key key--utility"
           aria-label="All clear"
-          onClick={() => act({ type: 'clear' })}
+          onClick={() => dispatchAction({ type: 'clear' })}
         >
           AC
         </button>
@@ -149,7 +158,7 @@ export function Calculator() {
           type="button"
           className="key key--utility key--sign"
           aria-label="Toggle sign"
-          onClick={() => act({ type: 'sign' })}
+          onClick={() => dispatchAction({ type: 'sign' })}
         >
           ±
         </button>
@@ -157,7 +166,7 @@ export function Calculator() {
           type="button"
           className="key key--utility"
           aria-label="Backspace"
-          onClick={() => act({ type: 'backspace' })}
+          onClick={() => dispatchAction({ type: 'backspace' })}
         >
           <BackspaceIcon />
         </button>
@@ -173,7 +182,7 @@ export function Calculator() {
           type="button"
           className="key"
           aria-label="Decimal point"
-          onClick={() => act({ type: 'decimal' })}
+          onClick={() => dispatchAction({ type: 'decimal' })}
         >
           .
         </button>
@@ -182,7 +191,7 @@ export function Calculator() {
           className="key key--equals"
           aria-label="Equals"
           disabled={submissionDisabled}
-          onClick={() => act({ type: 'equals' })}
+          onClick={() => dispatchAction({ type: 'equals' })}
         >
           =
         </button>

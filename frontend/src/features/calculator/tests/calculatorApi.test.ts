@@ -25,6 +25,7 @@ describe('calculator API client', () => {
   it('posts the exact contract and returns the server result, including zero', async () => {
     const fetchMock = respond({ result: 0 });
     const requestSignal = signal();
+
     await expect(calculate(input, requestSignal)).resolves.toBe(0);
     expect(fetchMock).toHaveBeenCalledWith('/api/calculate', {
       method: 'POST',
@@ -42,7 +43,9 @@ describe('calculator API client', () => {
   ])('appends the API path to the configured public origin %s', async (origin) => {
     vi.stubEnv('VITE_API_BASE_URL', origin);
     const fetchMock = respond({ result: 5 });
+
     await calculate(input, signal());
+
     expect(fetchMock).toHaveBeenCalledWith(
       'https://calculator-api.example/api/calculate',
       expect.any(Object),
@@ -52,7 +55,9 @@ describe('calculator API client', () => {
   it('keeps the local relative URL when the build-time variable is empty', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '');
     const fetchMock = respond({ result: 5 });
+
     await calculate(input, signal());
+
     expect(fetchMock).toHaveBeenCalledWith('/api/calculate', expect.any(Object));
   });
 
@@ -60,6 +65,7 @@ describe('calculator API client', () => {
     'preserves result %s without rounding',
     async (result) => {
       respond({ result });
+
       await expect(calculate(input, signal())).resolves.toBe(result);
     },
   );
@@ -68,6 +74,7 @@ describe('calculator API client', () => {
     'preserves %s errors',
     async (code) => {
       respond({ error: { code, message: 'Useful explanation.' } }, 400);
+
       await expect(calculate(input, signal())).rejects.toMatchObject({
         code,
         message: 'Useful explanation.',
@@ -84,6 +91,7 @@ describe('calculator API client', () => {
     { error: { code: 'INVALID_INPUT' } },
   ])('rejects invalid success payload %j', async (body) => {
     respond(body);
+
     await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
 
@@ -94,6 +102,7 @@ describe('calculator API client', () => {
     { error: { code: 4, message: 'No' } },
   ])('rejects invalid error payload %j', async (body) => {
     respond(body, 400);
+
     await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
 
@@ -160,7 +169,9 @@ describe('calculator API client', () => {
   it('removes the deadline timer after a successful response', async () => {
     vi.useFakeTimers();
     respond({ result: 5 });
+
     await calculate(input, signal());
+
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -169,6 +180,7 @@ describe('calculator API client', () => {
     { ...input, b: NaN },
   ])('rejects non-finite operands before serialization', async (request) => {
     const fetchMock = respond({ result: 0 });
+
     await expect(calculate(request, signal())).rejects.toMatchObject({ code: 'INVALID_INPUT' });
     expect(fetchMock).not.toHaveBeenCalled();
   });

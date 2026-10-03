@@ -19,7 +19,12 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**', 'src/main.tsx'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/features/calculator/tests/testHelpers.ts',
+        'src/test/**',
+        'src/main.tsx',
+      ],
       reporter: ['text', 'html', 'json-summary', 'lcov'],
     },
   },
