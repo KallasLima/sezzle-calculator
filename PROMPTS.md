@@ -269,3 +269,22 @@ Save the final video as docs/demo.mp4, keeping it reasonably small without makin
 Watch the exported video from start to finish. Verify the captions, arithmetic, error recovery, readable desktop/mobile views, actual URLs, playback, and absence of private information. Inspect the GIF and README rendering too. Report any limitation honestly; a screenshot slideshow is not a recording of the working app.
 
 Preserve application behavior. Record this exact prompt in PROMPTS.md, then commit and push the reviewed demo assets and documentation in a small Conventional Commit. Finish with the video and GIF paths, duration, file sizes, validation performed, and the live demo link.
+
+## 6. Public repository publication (2026-10-03)
+
+```text
+Make https://github.com/KallasLima/sezzle-calculator public so the assessment reviewers can access the code, README, prompt record, and demo without an invitation.
+
+This explicitly supersedes my earlier instruction to keep this repository private. It authorizes changing this repository's visibility to public after the checks below. Keep this task focused on publication; do not submit the assessment or contact anyone.
+
+First verify the exact repository, current account, remote, branch, working tree, and latest remote commit. Recheck any changes since the audited commit for sensitive content, including new prompt records, media, metadata, and commit messages. Never print discovered secrets. If new sensitive information is found, leave the repository private and report its location and category privately; do not publish it. Do not rewrite clean history or delete truthful AI-assistance disclosure.
+
+Update the current README statements that source and video access require a private-repository invitation so they accurately describe public access. Preserve historical prompts verbatim. Append this exact prompt to PROMPTS.
+
+Review and commit the documentation changes in a small Conventional Commit, then push to the existing main branch using the repository's current permitted workflow. Do not force-push, alter protections, change application behavior, add a license by assumption, enable auto-deployment, or change Render resources or costs. Check documentation links and diff formatting; a full application test rerun is unnecessary for documentation-only edits.
+
+Use the supported GitHub CLI/API to change this exact repository's visibility to public. Check the installed command's help rather than assuming flags. Verify GitHub reports PUBLIC, then independently test unauthenticated access without tokens or session cookies to the repository, README, PROMPTS.md, GIF, and MP4. Confirm a reviewer can obtain the source without an invitation and that README links work. Do not claim publication based only on an authenticated page.
+
+Finish with the public repository URL, final pushed commit, the anonymous-access checks performed, and any real remaining limitation.
+
+```

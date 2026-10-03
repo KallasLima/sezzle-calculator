@@ -4,6 +4,8 @@ A calculator built with React, TypeScript, and a Go HTTP service. The frontend h
 
 **[Open the live calculator](https://sezzle-calculator-ur1z.onrender.com)** · [Backend health](https://sezzle-calculator-api-bf7n.onrender.com/healthz)
 
+The [repository](https://github.com/KallasLima/sezzle-calculator), prompt record, and demo files are public. No GitHub account or invitation is required to read or download them.
+
 Free hosting can take about a minute to start the API on the first calculation. The demo below uses a warmed backend.
 
 ## Demo
@@ -20,7 +22,7 @@ Try it in 30 seconds: enter `12 × 2 =` to get `24`, press AC, then type `2 + 3 
 
 Install [Go 1.26+](https://go.dev/doc/install) and [Node.js 24.15+ with npm](https://nodejs.org/en/download). Tested with Go 1.27.1 and Node 24.19.0 on Windows.
 
-Clone the repository, or download and extract its ZIP from GitHub:
+Clone the public repository, or download and extract its ZIP from GitHub:
 
 ```sh
 git clone https://github.com/KallasLima/sezzle-calculator.git
