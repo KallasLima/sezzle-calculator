@@ -11,10 +11,15 @@ const button = (name: string) => screen.getByRole('button', { name });
 function deferred() {
   let resolve!: (value: number) => void;
   let reject!: (reason: unknown) => void;
-  const promise = new Promise<number>((yes, no) => { resolve = yes; reject = no; });
+  const promise = new Promise<number>((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
   return { promise, resolve, reject };
 }
-beforeEach(() => { calculateMock.mockReset(); });
+beforeEach(() => {
+  calculateMock.mockReset();
+});
 
 describe('input across unresolved chained calculations', () => {
   it('keeps the next operand editable when equals arrives after the intermediate result', async () => {
@@ -40,7 +45,10 @@ describe('input across unresolved chained calculations', () => {
     expect(calculateMock.mock.calls[0][1].aborted).toBe(false);
     await act(async () => first.resolve(5));
     expect(calculateMock).toHaveBeenCalledTimes(2);
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'multiply', a: 5, b: 4 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'multiply', a: 5, b: 4 },
+      expect.any(AbortSignal),
+    );
     await act(async () => second.resolve(20));
     expect(result()).toHaveTextContent(/^20$/);
   });
@@ -50,15 +58,24 @@ describe('input across unresolved chained calculations', () => {
     const first = deferred();
     const second = deferred();
     const third = deferred();
-    calculateMock.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise).mockReturnValueOnce(third.promise);
+    calculateMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+      .mockReturnValueOnce(third.promise);
     render(<Calculator />);
     await user.keyboard('2+3*4+');
     await act(async () => first.resolve(5));
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'multiply', a: 5, b: 4 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'multiply', a: 5, b: 4 },
+      expect.any(AbortSignal),
+    );
     await user.keyboard('6===');
     expect(calculateMock).toHaveBeenCalledTimes(2);
     await act(async () => second.resolve(20));
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'add', a: 20, b: 6 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'add', a: 20, b: 6 },
+      expect.any(AbortSignal),
+    );
     await act(async () => third.resolve(26));
     expect(result()).toHaveTextContent(/^26$/);
     expect(calculateMock).toHaveBeenCalledTimes(3);
@@ -69,32 +86,44 @@ describe('input across unresolved chained calculations', () => {
     const first = deferred();
     calculateMock.mockReturnValueOnce(first.promise).mockResolvedValueOnce(5);
     render(<Calculator />);
-    for (const name of ['2', 'Add', '3', 'Multiply', 'Divide', '1', 'Equals']) await user.click(button(name));
+    for (const name of ['2', 'Add', '3', 'Multiply', 'Divide', '1', 'Equals'])
+      await user.click(button(name));
     await act(async () => first.resolve(5));
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'divide', a: 5, b: 1 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'divide', a: 5, b: 1 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^5$/);
   });
 
-  it.each(['resolve', 'reject'] as const)('AC discards all queued input and ignores a late %s after a new calculation', async (outcome) => {
-    const user = userEvent.setup();
-    const old = deferred();
-    calculateMock.mockReturnValueOnce(old.promise).mockResolvedValueOnce(9);
-    render(<Calculator />);
-    await user.keyboard('2+3*4+6=');
-    await user.click(button('All clear'));
-    expect(result()).toHaveTextContent(/^0$/);
-    expect(calculateMock.mock.calls[0][1].aborted).toBe(true);
-    await user.keyboard('4+5=');
-    await act(async () => outcome === 'resolve' ? old.resolve(5) : old.reject(new Error('Old failure')));
-    expect(result()).toHaveTextContent(/^9$/);
-    expect(calculateMock).toHaveBeenCalledTimes(2);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
+  it.each(['resolve', 'reject'] as const)(
+    'AC discards all queued input and ignores a late %s after a new calculation',
+    async (outcome) => {
+      const user = userEvent.setup();
+      const old = deferred();
+      calculateMock.mockReturnValueOnce(old.promise).mockResolvedValueOnce(9);
+      render(<Calculator />);
+      await user.keyboard('2+3*4+6=');
+      await user.click(button('All clear'));
+      expect(result()).toHaveTextContent(/^0$/);
+      expect(calculateMock.mock.calls[0][1].aborted).toBe(true);
+      await user.keyboard('4+5=');
+      await act(async () =>
+        outcome === 'resolve' ? old.resolve(5) : old.reject(new Error('Old failure')),
+      );
+      expect(result()).toHaveTextContent(/^9$/);
+      expect(calculateMock).toHaveBeenCalledTimes(2);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    },
+  );
 
   it('stops and discards the continuation after a failed intermediate result; permits retry', async () => {
     const user = userEvent.setup();
     const first = deferred();
-    calculateMock.mockReturnValueOnce(first.promise).mockResolvedValueOnce(5).mockResolvedValueOnce(20);
+    calculateMock
+      .mockReturnValueOnce(first.promise)
+      .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(20);
     render(<Calculator />);
     await user.keyboard('2+3*4+6=');
     await act(async () => first.reject(new Error('Service unavailable.')));
@@ -102,7 +131,10 @@ describe('input across unresolved chained calculations', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/queued input.*clear/i);
     expect(calculateMock).toHaveBeenCalledTimes(1);
     await user.keyboard('=');
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'add', a: 2, b: 3 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'add', a: 2, b: 3 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^5$/);
     await user.keyboard('*4=');
     expect(result()).toHaveTextContent(/^20$/);
@@ -112,7 +144,10 @@ describe('input across unresolved chained calculations', () => {
   it('keeps edits, explicit zero, and a new calculation after queued equals in order', async () => {
     const user = userEvent.setup();
     const first = deferred();
-    calculateMock.mockReturnValueOnce(first.promise).mockResolvedValueOnce(0).mockResolvedValueOnce(9);
+    calculateMock
+      .mockReturnValueOnce(first.promise)
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(9);
     render(<Calculator />);
     await user.keyboard('2+3*4{Backspace}0=7+2=');
     await act(async () => first.resolve(5));
@@ -133,7 +168,10 @@ describe('input across unresolved chained calculations', () => {
     await user.click(button('Toggle sign'));
     await user.keyboard('=');
     await act(async () => first.resolve(5));
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'multiply', a: 5, b: -0.5 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'multiply', a: 5, b: -0.5 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^-2.5$/);
   });
 
@@ -142,7 +180,10 @@ describe('input across unresolved chained calculations', () => {
     const first = deferred();
     const second = deferred();
     const newer = deferred();
-    calculateMock.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise).mockReturnValueOnce(newer.promise);
+    calculateMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+      .mockReturnValueOnce(newer.promise);
     render(<Calculator />);
     await user.keyboard('2+3*4+6=');
     await act(async () => first.resolve(5));
@@ -161,14 +202,20 @@ describe('input across unresolved chained calculations', () => {
     const user = userEvent.setup();
     const first = deferred();
     const second = deferred();
-    calculateMock.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise).mockResolvedValueOnce(20);
+    calculateMock
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+      .mockResolvedValueOnce(20);
     render(<Calculator />);
     await user.keyboard('2+3*4+6=');
     await act(async () => first.resolve(5));
     await act(async () => second.reject(new Error('Connection failed.')));
     expect(screen.getByRole('alert')).toHaveTextContent(/queued input.*clear/i);
     await user.keyboard('=');
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'multiply', a: 5, b: 4 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'multiply', a: 5, b: 4 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^20$/);
     expect(calculateMock).toHaveBeenCalledTimes(3);
   });

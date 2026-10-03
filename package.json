@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24.15.0" },
+  "engines": {
+    "node": ">=24.15.0"
+  },
   "scripts": {
     "doctor": "node scripts/project.mjs doctor",
     "setup": "node scripts/project.mjs setup",
     "dev": "node scripts/project.mjs dev",
-    "verify": "node scripts/project.mjs verify"
+    "verify": "node scripts/project.mjs verify",
+    "format": "node frontend/node_modules/prettier/bin/prettier.cjs --write \"**/*.{js,mjs,ts,tsx,css,json}\"",
+    "format:check": "node frontend/node_modules/prettier/bin/prettier.cjs --check \"**/*.{js,mjs,ts,tsx,css,json}\""
   }
 }

@@ -3,7 +3,10 @@ import { calculate } from './api';
 import type { Operation } from './api';
 
 export const symbols: Record<Operation, string> = {
-  add: '+', subtract: '−', multiply: '×', divide: '÷',
+  add: '+',
+  subtract: '−',
+  multiply: '×',
+  divide: '÷',
 };
 
 export type CalculatorAction =
@@ -38,12 +41,17 @@ interface CalculatorState {
 
 type Evaluation = { feedbackTimer?: ReturnType<typeof setTimeout> } & (
   | { kind: 'equals'; controller: AbortController }
-  | { kind: 'chain'; controller: AbortController; queue: CalculatorAction[] });
+  | { kind: 'chain'; controller: AbortController; queue: CalculatorAction[] }
+);
 
 const SLOW_REQUEST_MS = 8_000;
 
 const initialState: CalculatorState = {
-  entry: '0', entryMode: 'first', pending: null, expression: '', activity: { status: 'idle' },
+  entry: '0',
+  entryMode: 'first',
+  pending: null,
+  expression: '',
+  activity: { status: 'idle' },
 };
 
 // Entry editing is local text manipulation, never arithmetic.
@@ -56,7 +64,8 @@ function editEntry(before: CalculatorState, action: EntryAction): CalculatorStat
   switch (action.type) {
     case 'digit':
       if (isResult || waiting) entry = action.value;
-      else if (entry === '0' || entry === '-0') entry = `${entry.startsWith('-') ? '-' : ''}${action.value}`;
+      else if (entry === '0' || entry === '-0')
+        entry = `${entry.startsWith('-') ? '-' : ''}${action.value}`;
       else entry += action.value;
       break;
     case 'decimal':
@@ -74,7 +83,10 @@ function editEntry(before: CalculatorState, action: EntryAction): CalculatorStat
       break;
   }
 
-  return { ...before, entry, entryMode,
+  return {
+    ...before,
+    entry,
+    entryMode,
     expression: before.pending ? `${before.pending.text} ${symbols[before.pending.operation]}` : '',
     activity: { status: 'idle' },
   };
@@ -100,7 +112,12 @@ export function useCalculator() {
     active?.controller.abort();
   }
 
-  useEffect(() => () => { cancelRequest(); }, []);
+  useEffect(
+    () => () => {
+      cancelRequest();
+    },
+    [],
+  );
 
   function fail(before: CalculatorState, message: string) {
     update({ ...before, activity: { status: 'error', message } });
@@ -119,7 +136,11 @@ export function useCalculator() {
     }
   }
 
-  async function evaluate(before: CalculatorState, nextOperation?: Operation, queue?: CalculatorAction[]) {
+  async function evaluate(
+    before: CalculatorState,
+    nextOperation?: Operation,
+    queue?: CalculatorAction[],
+  ) {
     const pending = before.pending;
     if (!pending || before.entryMode !== 'second' || request.current) return;
     const b = Number(before.entry);
@@ -138,17 +159,24 @@ export function useCalculator() {
     update({ ...before, activity: { status: 'loading', kind: active.kind, slow: false } });
     active.feedbackTimer = setTimeout(() => {
       if (request.current === active) {
-        update({ ...current.current, activity: { status: 'loading', kind: active.kind, slow: true } });
+        update({
+          ...current.current,
+          activity: { status: 'loading', kind: active.kind, slow: true },
+        });
       }
     }, SLOW_REQUEST_MS);
 
     let result: number;
     try {
-      result = await calculate({ operation: pending.operation, a: pending.operand, b }, controller.signal);
+      result = await calculate(
+        { operation: pending.operation, a: pending.operand, b },
+        controller.signal,
+      );
     } catch (error) {
       if (request.current !== active) return;
       request.current = null;
-      const message = error instanceof Error ? error.message : 'The calculation failed. Please try again.';
+      const message =
+        error instanceof Error ? error.message : 'The calculation failed. Please try again.';
       if (active.kind === 'chain') active.queue.length = 0;
       // Keep only the failed operation for correction/retry. The continuation
       // cannot safely run without its result, so never replay it after failure.
@@ -206,9 +234,11 @@ export function useCalculator() {
         fail(before, 'Enter a finite number within the supported range.');
         return;
       }
-      update({ ...before,
+      update({
+        ...before,
         pending: { operation: action.value, operand, text: before.entry },
-        entryMode: 'waiting', expression: `${before.entry} ${symbols[action.value]}`,
+        entryMode: 'waiting',
+        expression: `${before.entry} ${symbols[action.value]}`,
         activity: { status: 'idle' },
       });
     } else {
@@ -217,7 +247,9 @@ export function useCalculator() {
   }
 
   return {
-    entry: state.entry, pending: state.pending, expression: state.expression,
+    entry: state.entry,
+    pending: state.pending,
+    expression: state.expression,
     hasSecondOperand: state.entryMode === 'second',
     status: state.activity.status,
     error: state.activity.status === 'error' ? state.activity.message : null,

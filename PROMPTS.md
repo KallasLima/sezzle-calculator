@@ -288,3 +288,101 @@ Use the supported GitHub CLI/API to change this exact repository's visibility to
 Finish with the public repository URL, final pushed commit, the anonymous-access checks performed, and any real remaining limitation.
 
 ```
+
+## 7. Frontend and runner readability (2026-10-03)
+
+```text
+The application meets the assessment's functional requirements, but the frontend and development runner need a deliberate readability pass. Passing requirements and tests does not make every implementation choice pleasant to maintain. The useful changes below are concentrated and do not call for a new architecture.
+
+## 1. Make formatting consistent and reproducible
+
+**Evidence:** `frontend/src/Calculator.tsx:26-88`, `frontend/src/useCalculator.ts:45-79`, `frontend/src/styles.css:17-45`, `scripts/project.mjs:111-127`. Multiple statements, object fields, JSX attributes, and CSS declarations are routinely compressed onto single lines. There is no formatter configuration or format-check command in the root/frontend manifests. Go's existing formatting passes `gofmt -l`.
+
+**Change:** use a pinned Prettier development dependency and a small explicit configuration for authored JS/TS/TSX/CSS/JSON. Use braces for control-flow bodies and put meaningful steps on separate lines. Add write/check commands that work through the documented installation path, plus a format check in verification. Ignore generated artifacts and preserve verbatim prompt text rather than reflowing historical prompts. Do not make the root setup misleading by adding an undocumented second dependency install.
+
+Prettier handles layout; it does not replace the manual work of simplifying control flow, naming values, and introducing braces. Keep `gofmt` for Go. Additional lint plugins are not prerequisites for this cleanup.
+
+## 2. Give the calculator a feature boundary
+
+**Evidence:** `frontend/src` contains the calculator component, hook, API client, five test files, and application-wide CSS at the same level. `main.tsx:5-6` imports the feature directly from that flat directory.
+
+**Change:** put calculator production files in `src/features/calculator/` and its five suites in `src/features/calculator/tests/`. Keep application bootstrap/global styling at `src/` and shared test setup at `src/test/`. A small feature-local test helper file can live beside these tests. Keep backend packages and adjacent Go tests as they are.
+
+Use descriptive filenames, such as `calculatorApi.ts` and `calculator.css`. Move only shared feature contracts into a feature-owned types module: the UI and hook currently import `Operation` from the transport implementation (`api.ts:1`, `Calculator.tsx:4`, `useCalculator.ts:3`). Keep implementation-private state types beside their owner. Operation labels/symbols should have an intentional feature-level home instead of being exported incidentally by the hook.
+
+Update imports, mock paths, entrypoint CSS imports, documentation references, and coverage discovery. Feature-local test support must not accidentally become production coverage; exclude precisely test/helper paths, never the entire calculator feature. No empty future-feature folders, global services hierarchy, barrel-export maze, or workspace migration.
+
+## 3. Make asynchronous intent explicit in the hook
+
+**Evidence:** `useCalculator.ts:122-136` chooses chain mode from the presence of a queue, including `[]`. Call sites at lines197/201 use positional optional arguments and `undefined` to express intent. Understanding `evaluate`, `drain`, and `apply` requires tracking this convention across several functions.
+
+**Change:** replace the optional-queue mode convention with a named request/context object that explicitly distinguishes a standalone equals request from queued chain evaluation. An equals action reached while replaying a chain must remain part of that chain even if its queue is currently empty. Preserve the same queue object across successive requests.
+
+Use names that explain responsibility: `stateRef`, `activeRequestRef`, `dispatchAction`, `processQueuedActions`, and `evaluatePendingOperation` are clearer than `current`, `request`, `act`, `drain`, and `evaluate`. At internal boundaries, `firstOperand`, `secondOperand`, and `firstOperandText` explain more than `operand`, `b`, and `text`; keep the required wire fields `a` and `b` unchanged.
+
+Expand entry-edit branches, especially sign handling at line67. Organize evaluation into recognizable phases: validate, start request, handle failure, commit result, resume queued actions. Extract a helper only when it names a real phase or pure transition. Keep the state/ref synchronization, request identity check, timer cleanup, and ordered replay. They solve actual races and are not redundant code to remove. A reducer library, state-machine framework, or replacement of the whole hook is unnecessary.
+
+## 4. Separate presentation decisions from JSX
+
+**Evidence:** `Calculator.tsx:27-40` combines keyboard filtering, key translation, and dispatch. Lines60 and70-72 embed nested conditional expressions in presentation. Rendering is harder to scan because the reader must simultaneously decode status logic and markup.
+
+**Change:** extract a small keyboard-to-action function and name the editable-target/native-button guard conditions. Compute feedback text and number-size class through clear branches before rendering. Use an explicit operator label mapping rather than deriving accessible labels by capitalizing transport identifiers. Rename button-producing helpers to `renderDigitButton`/`renderOperatorButton` if they remain ordinary functions.
+
+Format the component first. Extract a display or keypad component only if that leaves two cohesive, readable responsibilities with simple props. Do not create a component for each row, icon, or button just to shorten a file. Preserve actual button elements, native Enter/Space behavior, output scrolling, live-region semantics, and focus styles.
+
+The hook returns a new `act` function per render, so the keyboard listener effect is reattached per render. Cleanup is correct; this is not a proven bug or meaningful performance bottleneck. Do not add memoization everywhere as part of a readability task.
+
+## 5. Make API validation readable without weakening it
+
+**Evidence:** `api.ts:24-30` compresses timeout/cancellation setup; lines61-71 contain a long sequence of structural checks inside nested branches. The outer catch/finally and inner fetch/JSON catches serve different purposes.
+
+**Change:** format the request lifecycle and use small, local response-shape predicates or a decoder for the two actual response shapes. Give transport functions explicit names, for example `requestCalculation`. Preserve validation of unknown JSON, finite results, nonempty error messages, connection/5xx handling, cancellation reasons, and timeout coverage while reading the body.
+
+Do not introduce a schema dependency, generic HTTP client, retry abstraction, or global error framework. Do not collapse the nested catches without preserving their distinct error behavior. Update the 5xx comment to describe both the local proxy and hosted service responses.
+
+## 6. Make tests easier to trust and extend
+
+**Evidence:** `Calculator.test.tsx:20` and `Calculator.chaining.test.tsx:11` duplicate the same deferred-promise helper, with callback names `yes`/`no` and compressed assignments. The keypad suite creates a new user-event session in every `press` call (line16); one keyboard test creates several within one scenario (lines250-255). Most tests have useful behavior-based names and assertions, which should be retained.
+
+**Change:** share the small deferred-promise helper within calculator tests, use descriptive resolver names, and use one user-event session per user scenario. Keep explicit setup/action/assertion blocks with whitespace rather than mandatory section comments. Keep fake-time network tests distinct from realistic native keyboard tests: they serve different purposes. Avoid a generic test DSL that hides what was clicked or what response completed.
+
+**Two specific test-clarity gaps:**
+
+- `Calculator.test.tsx:96`: the name promises support for a sign-only zero second operand, but the sequence toggles the sign twice and then enters4 before submitting. Assert the intermediate signed entry and add a focused sign-only-zero submission case, or narrow the name. This is a missing assertion, not a demonstrated application defect.
+- `Calculator.test.tsx:260`: the ignored-editable-input test renders a contentEditable element but only dispatches to the ordinary input. Add focused coverage for contentEditable, textarea, and select if the test is meant to guarantee all supported guards. Keep native button Enter/Space coverage intact.
+
+Retain cancellation, late-response, queued-input, overflow, retry, and timer-cleanup cases. Reorganizing tests must not reduce coverage by changing exclusions. The existing deterministic309-digit regression should remain deterministic.
+
+## 7. Separate global and feature CSS
+
+**Evidence:** `styles.css:17-22` mixes resets, root layout, calculator layout, and a global `h1` rule. Responsive `h1` styling is also global. `--purple` at line12 is defined but unused.
+
+**Change:** keep resets/font/page base in global CSS and calculator selectors in feature CSS. Scope its heading under the calculator. Expand each declaration onto its own line and group base styles, component states, and responsive overrides clearly. Remove the unused variable. Preserve cascade order, breakpoint values, layout, colors, overflow, and reduced-motion behavior.
+
+Existing class names and CSS custom properties are adequate. CSS Modules, a utility framework, or a new design system are not needed.
+
+## 8. Simplify the local runner's presentation and names
+
+**Evidence:** `scripts/project.mjs:84-142` nests process startup, shutdown, waiting, and cleanup; lines111-127 pack promises, loops, callbacks, and ternaries together. `atLeast`, `capture`, `run`, and `npm` are overly generic within a script with multiple responsibilities. The process-tree comment at line102 is broader than its Windows direct-child kill implementation.
+
+**Change:** use names such as `isVersionAtLeast`, `readCommandOutput`, `runCommand`, and `runFrontendNpm`. Expand shutdown waits and failure paths. A local `waitForChildExit` helper would clarify the existing lifecycle. Distinguish the stopping flag from the shared shutdown promise. Correct the comment to describe the actual platform-specific behavior.
+
+Do not change process-killing policy or replace the portable runner during a cosmetic cleanup. The combined runner already passed start/stop verification. Its implementation needs clarity, not an unverified redesign. Keep this in a separate commit from UI changes and verify local startup, calculation, Ctrl+C, port release, and temporary-binary cleanup if it is refactored.
+
+## 9. Keep the backend largely intact
+
+The Go package layout, pure arithmetic, HTTP boundary, error mapping, and table-driven tests are appropriate. `gofmt -l backend` returned no files. Short Go receiver/local names are not automatically readability problems.
+
+The very long positional config-test cases (`backend/cmd/server/config_test.go:17-20`) would read better as multiline keyed cases. The origin-validation condition could use a named predicate if expanded formatting still leaves it difficult to read. These are secondary edits, not reasons to split the small HTTP handler into layers or move every Go test into a separate directory.
+
+## Change order and proof
+
+1. Establish formatting and make mechanical formatting a reviewable commit.
+2. Move the calculator feature/tests, fix imports/config paths, and preserve coverage scope.
+3. Refactor the hook's explicit request context, JSX decisions, API parsing, and the two named test gaps in small coherent steps.
+4. Make the separate runner readability change only with its lifecycle verification; apply minor Go test formatting where useful.
+5. Update the short README file map and commands to match the resulting structure.
+
+Run the existing normal/coverage suites, TypeScript checking, Go tests/vet/build, and frontend build on the final code. Recheck real delayed chaining, AC/late responses, division-error recovery, focused-button Enter/Space, and320px mobile layout. Keep visual appearance/API behavior unchanged and preserve the previously verified timeout/body-read behavior. Do not raise timeouts, weaken assertions, or broaden coverage exclusions to obtain green checks.
+
+```

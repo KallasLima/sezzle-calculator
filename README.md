@@ -63,7 +63,9 @@ From the repository root after setup:
 npm run verify
 ```
 
-This runs Go tests, coverage, vet, and build, followed by frontend tests, coverage, TypeScript checking, and the production build.
+This checks formatting, then runs Go tests, coverage, vet, and build, followed by frontend tests, coverage, TypeScript checking, and the production build.
+
+After `npm run setup`, use `npm run format` to format authored JavaScript, TypeScript, CSS, and JSON, or `npm run format:check` to check them. The pinned Prettier dependency is installed with the frontend; no separate root install is needed. Generated files and the verbatim prompt record are excluded. Use `gofmt` for Go.
 
 HTML coverage reports:
 

@@ -5,7 +5,8 @@ import { Calculator } from './Calculator';
 import { calculate, CalculationError } from './api';
 
 vi.mock('./api', async (importOriginal) => ({
-  ...await importOriginal<typeof import('./api')>(), calculate: vi.fn(),
+  ...(await importOriginal<typeof import('./api')>()),
+  calculate: vi.fn(),
 }));
 
 const calculateMock = vi.mocked(calculate);
@@ -20,11 +21,16 @@ async function press(...keys: string[]) {
 function deferred() {
   let resolve!: (value: number) => void;
   let reject!: (reason: unknown) => void;
-  const promise = new Promise<number>((yes, no) => { resolve = yes; reject = no; });
+  const promise = new Promise<number>((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
   return { promise, resolve, reject };
 }
 
-beforeEach(() => { calculateMock.mockReset(); });
+beforeEach(() => {
+  calculateMock.mockReset();
+});
 
 describe('calculator keypad', () => {
   it('starts at zero, has one exact heading and names every symbol control', () => {
@@ -32,17 +38,32 @@ describe('calculator keypad', () => {
     expect(screen.getByRole('heading', { name: 'Sezzle calculator' })).toBeInTheDocument();
     expect(result()).toHaveTextContent(/^0$/);
     expect(screen.getAllByRole('button')).toHaveLength(19);
-    for (const name of ['All clear', 'Toggle sign', 'Backspace', 'Divide', 'Multiply', 'Subtract', 'Add', 'Decimal point', 'Equals']) {
+    for (const name of [
+      'All clear',
+      'Toggle sign',
+      'Backspace',
+      'Divide',
+      'Multiply',
+      'Subtract',
+      'Add',
+      'Decimal point',
+      'Equals',
+    ]) {
       expect(button(name)).toHaveAccessibleName(name);
     }
-    expect(screen.getAllByRole('button').filter((key) => key.getAttribute('aria-pressed') === 'true')).toHaveLength(0);
+    expect(
+      screen.getAllByRole('button').filter((key) => key.getAttribute('aria-pressed') === 'true'),
+    ).toHaveLength(0);
   });
 
   it('sends 12 × 2 and displays the backend result 24', async () => {
     calculateMock.mockResolvedValue(24);
     render(<Calculator />);
     await press('1', '2', 'Multiply', '2', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'multiply', a: 12, b: 2 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'multiply', a: 12, b: 2 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^24$/);
     expect(screen.getByLabelText('Expression')).toHaveTextContent('12 × 2');
     expect(screen.getByText('Calculated')).toBeInTheDocument();
@@ -69,7 +90,10 @@ describe('calculator keypad', () => {
     calculateMock.mockResolvedValue(8);
     render(<Calculator />);
     await press('8', 'Add', '0', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'add', a: 8, b: 0 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'add', a: 8, b: 0 },
+      expect.any(AbortSignal),
+    );
   });
 
   it('preserves decimal text, ignores duplicate decimals and submits negative decimals', async () => {
@@ -78,7 +102,10 @@ describe('calculator keypad', () => {
     await press('Decimal point', '5', 'Decimal point', '0', 'Toggle sign');
     expect(result()).toHaveTextContent(/^-0.50$/);
     await press('Multiply', '2', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'multiply', a: -0.5, b: 2 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'multiply', a: -0.5, b: 2 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^-1$/);
   });
 
@@ -97,7 +124,10 @@ describe('calculator keypad', () => {
     calculateMock.mockResolvedValue(-3);
     render(<Calculator />);
     await press('1', 'Subtract', 'Toggle sign', 'Toggle sign', '4', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'subtract', a: 1, b: 4 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'subtract', a: 1, b: 4 },
+      expect.any(AbortSignal),
+    );
   });
 
   it('changes a pending operator without evaluating and ignores backspace while waiting', async () => {
@@ -107,7 +137,10 @@ describe('calculator keypad', () => {
     expect(calculateMock).not.toHaveBeenCalled();
     expect(button('Subtract')).toHaveAttribute('aria-pressed', 'true');
     await press('2', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'subtract', a: 8, b: 2 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'subtract', a: 8, b: 2 },
+      expect.any(AbortSignal),
+    );
   });
 
   it('chains left-to-right through the backend: 2 + 3 × 4 = 20', async () => {
@@ -115,9 +148,17 @@ describe('calculator keypad', () => {
     render(<Calculator />);
     await press('2', 'Add', '3', 'Multiply');
     expect(result()).toHaveTextContent(/^5$/);
-    expect(calculateMock).toHaveBeenNthCalledWith(1, { operation: 'add', a: 2, b: 3 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenNthCalledWith(
+      1,
+      { operation: 'add', a: 2, b: 3 },
+      expect.any(AbortSignal),
+    );
     await press('4', 'Equals');
-    expect(calculateMock).toHaveBeenNthCalledWith(2, { operation: 'multiply', a: 5, b: 4 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenNthCalledWith(
+      2,
+      { operation: 'multiply', a: 5, b: 4 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^20$/);
   });
 
@@ -125,7 +166,11 @@ describe('calculator keypad', () => {
     calculateMock.mockResolvedValueOnce(5).mockResolvedValueOnce(10);
     render(<Calculator />);
     await press('2', 'Add', '3', 'Equals', 'Multiply', '2', 'Equals');
-    expect(calculateMock).toHaveBeenNthCalledWith(2, { operation: 'multiply', a: 5, b: 2 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenNthCalledWith(
+      2,
+      { operation: 'multiply', a: 5, b: 2 },
+      expect.any(AbortSignal),
+    );
     await press('7');
     expect(result()).toHaveTextContent(/^7$/);
     expect(screen.getByLabelText('Expression')).toHaveTextContent(/^\s*$/);
@@ -148,7 +193,10 @@ describe('calculator keypad', () => {
     await press('8', 'Divide', 'All clear');
     expect(result()).toHaveTextContent(/^0$/);
     await press('4', 'Add', '5', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'add', a: 4, b: 5 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'add', a: 4, b: 5 },
+      expect.any(AbortSignal),
+    );
   });
 
   it.each([
@@ -157,7 +205,9 @@ describe('calculator keypad', () => {
     ['INVALID_INPUT', 'Invalid operation.'],
     ['CONNECTION_FAILED', 'Cannot connect to the calculator service.'],
   ])('shows %s errors and permits editing/retry', async (code, message) => {
-    calculateMock.mockRejectedValueOnce(new CalculationError(code, message)).mockResolvedValueOnce(4);
+    calculateMock
+      .mockRejectedValueOnce(new CalculationError(code, message))
+      .mockResolvedValueOnce(4);
     render(<Calculator />);
     await press('8', 'Divide', '0', 'Equals');
     expect(await screen.findByRole('alert')).toHaveTextContent(message);
@@ -170,7 +220,9 @@ describe('calculator keypad', () => {
     calculateMock.mockRejectedValue('unexpected');
     render(<Calculator />);
     await press('1', 'Add', '2', 'Equals');
-    expect(await screen.findByRole('alert')).toHaveTextContent('The calculation failed. Please try again.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The calculation failed. Please try again.',
+    );
   });
 
   it('shows loading and prevents duplicate equals/operator submissions', async () => {
@@ -219,7 +271,10 @@ describe('calculator keypad', () => {
     await act(async () => delayed.resolve(3));
     expect(result()).toHaveTextContent(/^23$/);
     await press('Equals');
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'add', a: 1, b: 23 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'add', a: 1, b: 23 },
+      expect.any(AbortSignal),
+    );
   });
 
   it('aborts a request on unmount', async () => {
@@ -258,7 +313,13 @@ describe('calculator keypad', () => {
   });
 
   it('ignores modified keys, unrelated keys and typing in editable controls', () => {
-    render(<><Calculator /><input aria-label="Other input" /><div contentEditable aria-label="Editable" /></>);
+    render(
+      <>
+        <Calculator />
+        <input aria-label="Other input" />
+        <div contentEditable aria-label="Editable" />
+      </>,
+    );
     fireEvent.keyDown(window, { key: '1', ctrlKey: true });
     fireEvent.keyDown(window, { key: '2', metaKey: true });
     fireEvent.keyDown(window, { key: '3', altKey: true });
@@ -271,7 +332,10 @@ describe('calculator keypad', () => {
     calculateMock.mockResolvedValue(0.30000000000000004);
     render(<Calculator />);
     await press('Decimal point', '1', 'Add', 'Decimal point', '2', 'Equals');
-    expect(calculateMock).toHaveBeenCalledWith({ operation: 'add', a: 0.1, b: 0.2 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenCalledWith(
+      { operation: 'add', a: 0.1, b: 0.2 },
+      expect.any(AbortSignal),
+    );
     expect(result()).toHaveTextContent(/^0.30000000000000004$/);
   });
 });

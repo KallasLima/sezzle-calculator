@@ -8,7 +8,9 @@ vi.mock('./api', () => ({ calculate: vi.fn() }));
 const calculateMock = vi.mocked(calculate);
 const button = (name: string) => screen.getByRole('button', { name });
 const result = () => screen.getByLabelText('Result');
-beforeEach(() => { calculateMock.mockReset(); });
+beforeEach(() => {
+  calculateMock.mockReset();
+});
 
 describe('focused keypad keyboard activation', () => {
   it.each(['{Enter}', ' '])('activates AC and other focused buttons once with %j', async (key) => {
@@ -35,7 +37,10 @@ describe('focused keypad keyboard activation', () => {
     await user.keyboard(key);
     expect(result()).toHaveTextContent(/^-4$/);
     expect(calculateMock).toHaveBeenCalledTimes(2);
-    expect(calculateMock).toHaveBeenLastCalledWith({ operation: 'multiply', a: -2, b: 2 }, expect.any(AbortSignal));
+    expect(calculateMock).toHaveBeenLastCalledWith(
+      { operation: 'multiply', a: -2, b: 2 },
+      expect.any(AbortSignal),
+    );
   });
 
   it('uses Enter as equals when the display has focus', async () => {

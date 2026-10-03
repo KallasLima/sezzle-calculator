@@ -23,12 +23,16 @@ function delayedFetch() {
   vi.stubGlobal('fetch', fetchMock);
   return {
     fetchMock,
-    get signal() { return signal; },
+    get signal() {
+      return signal;
+    },
     respond: (value: number) => resolve(new Response(JSON.stringify({ result: value }))),
   };
 }
 
-beforeEach(() => { vi.useFakeTimers(); });
+beforeEach(() => {
+  vi.useFakeTimers();
+});
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
@@ -40,9 +44,13 @@ describe('slow or unavailable backend requests', () => {
     const request = delayedFetch();
     render(<Calculator />);
     keys('2+3=');
-    await act(async () => { await vi.advanceTimersByTimeAsync(7_999); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(7_999);
+    });
     expect(feedback()).toHaveTextContent('Calculating…');
-    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
     expect(feedback()).toHaveTextContent(slowMessage);
     expect(request.fetchMock).toHaveBeenCalledTimes(1);
     await act(async () => request.respond(5));
@@ -55,9 +63,13 @@ describe('slow or unavailable backend requests', () => {
     const request = delayedFetch();
     render(<Calculator />);
     keys('12*2=');
-    await act(async () => { await vi.advanceTimersByTimeAsync(89_999); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(89_999);
+    });
     expect(request.signal.aborted).toBe(false);
-    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
     expect(request.signal.aborted).toBe(true);
     expect(screen.getByRole('alert')).toHaveTextContent('timed out');
     expect(screen.getByLabelText('Expression')).toHaveTextContent('12 × 2');
@@ -66,52 +78,77 @@ describe('slow or unavailable backend requests', () => {
     expect(vi.getTimerCount()).toBe(0);
     keys('=');
     expect(request.fetchMock).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(request.fetchMock.mock.calls[1][1].body)).toEqual({ operation: 'multiply', a: 12, b: 2 });
+    expect(JSON.parse(request.fetchMock.mock.calls[1][1].body)).toEqual({
+      operation: 'multiply',
+      a: 12,
+      b: 2,
+    });
     expect(feedback()).toHaveTextContent('Calculating…');
     await act(async () => request.respond(24));
     expect(result()).toHaveTextContent(/^24$/);
   });
 
-  it.each([1_000, 8_000])('AC cancels the request and both feedback/deadline timers after %i ms', async (elapsed) => {
-    const request = delayedFetch();
-    render(<Calculator />);
-    keys('2+3*4+6=');
-    await act(async () => { await vi.advanceTimersByTimeAsync(elapsed); });
-    fireEvent.click(screen.getByRole('button', { name: 'All clear' }));
-    expect(request.signal.aborted).toBe(true);
-    expect(result()).toHaveTextContent(/^0$/);
-    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
-    expect(vi.getTimerCount()).toBe(0);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(feedback()).not.toHaveTextContent(slowMessage);
-    expect(request.fetchMock).toHaveBeenCalledTimes(1);
-  });
+  it.each([1_000, 8_000])(
+    'AC cancels the request and both feedback/deadline timers after %i ms',
+    async (elapsed) => {
+      const request = delayedFetch();
+      render(<Calculator />);
+      keys('2+3*4+6=');
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(elapsed);
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'All clear' }));
+      expect(request.signal.aborted).toBe(true);
+      expect(result()).toHaveTextContent(/^0$/);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(90_000);
+      });
+      expect(vi.getTimerCount()).toBe(0);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(feedback()).not.toHaveTextContent(slowMessage);
+      expect(request.fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('drops timed-out chain continuation and retains only the failed operation for retry', async () => {
     const request = delayedFetch();
     render(<Calculator />);
     keys('2+3*4+6=');
-    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(90_000);
+    });
     expect(screen.getByRole('alert')).toHaveTextContent('queued input cleared');
     expect(request.fetchMock).toHaveBeenCalledTimes(1);
     keys('=');
     await act(async () => request.respond(5));
     expect(result()).toHaveTextContent(/^5$/);
     expect(request.fetchMock).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(request.fetchMock.mock.calls[1][1].body)).toEqual({ operation: 'add', a: 2, b: 3 });
+    expect(JSON.parse(request.fetchMock.mock.calls[1][1].body)).toEqual({
+      operation: 'add',
+      a: 2,
+      b: 3,
+    });
   });
 
   it('restarts slow feedback for each ordered request and preserves the queued calculation', async () => {
     const request = delayedFetch();
     render(<Calculator />);
     keys('2+3*4=');
-    await act(async () => { await vi.advanceTimersByTimeAsync(8_000); });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(8_000);
+    });
     expect(feedback()).toHaveTextContent(slowMessage);
     await act(async () => request.respond(5));
     expect(feedback()).toHaveTextContent('Calculating…');
     expect(request.fetchMock).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(request.fetchMock.mock.calls[1][1].body)).toEqual({ operation: 'multiply', a: 5, b: 4 });
-    await act(async () => { await vi.advanceTimersByTimeAsync(8_000); });
+    expect(JSON.parse(request.fetchMock.mock.calls[1][1].body)).toEqual({
+      operation: 'multiply',
+      a: 5,
+      b: 4,
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(8_000);
+    });
     expect(feedback()).toHaveTextContent(slowMessage);
     await act(async () => request.respond(20));
     expect(result()).toHaveTextContent(/^20$/);
