@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useCalculator } from './useCalculator';
-import { operationSymbols } from './operations';
+import { operationLabels, operationSymbols } from './operations';
 import type { CalculatorAction, Operation } from './types';
 
 const keyboardOperations: Record<string, Operation> = {
@@ -9,6 +9,28 @@ const keyboardOperations: Record<string, Operation> = {
   '*': 'multiply',
   '/': 'divide',
 };
+
+function keyboardToAction(key: string): CalculatorAction | undefined {
+  if (/^[0-9]$/.test(key)) {
+    return { type: 'digit', value: key };
+  }
+  if (keyboardOperations[key]) {
+    return { type: 'operator', value: keyboardOperations[key] };
+  }
+  switch (key) {
+    case '.':
+      return { type: 'decimal' };
+    case '=':
+    case 'Enter':
+      return { type: 'equals' };
+    case 'Backspace':
+      return { type: 'backspace' };
+    case 'Escape':
+      return { type: 'clear' };
+    default:
+      return undefined;
+  }
+}
 
 function BackspaceIcon() {
   return (
@@ -33,37 +55,37 @@ export function Calculator() {
     isSlow,
   } = calculator;
   const submissionDisabled = status === 'loading' && !isChaining;
-  const numberDisplay = useRef<HTMLOutputElement>(null);
+  const numberDisplayRef = useRef<HTMLOutputElement>(null);
 
   useLayoutEffect(() => {
-    const display = numberDisplay.current;
-    if (display) display.scrollLeft = display.scrollWidth;
+    const display = numberDisplayRef.current;
+    if (display) {
+      display.scrollLeft = display.scrollWidth;
+    }
   }, [entry]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
-      )
+      if (event.ctrlKey || event.metaKey || event.altKey) {
         return;
+      }
+      const target = event.target;
+      const isEditableTarget =
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+      if (isEditableTarget) {
+        return;
+      }
       // Leave Enter/Space to the focused key's native click behavior.
-      if (
+      const isNativeButtonActivation =
         (event.key === 'Enter' || event.key === ' ') &&
         target instanceof HTMLElement &&
-        target.closest('.keypad button')
-      )
+        target.closest('.keypad button') !== null;
+      if (isNativeButtonActivation) {
         return;
-      let action: CalculatorAction | undefined;
-      if (/^[0-9]$/.test(event.key)) action = { type: 'digit', value: event.key };
-      else if (event.key === '.') action = { type: 'decimal' };
-      else if (keyboardOperations[event.key])
-        action = { type: 'operator', value: keyboardOperations[event.key] };
-      else if (event.key === '=' || event.key === 'Enter') action = { type: 'equals' };
-      else if (event.key === 'Backspace') action = { type: 'backspace' };
-      else if (event.key === 'Escape') action = { type: 'clear' };
+      }
+
+      const action = keyboardToAction(event.key);
       if (action) {
         event.preventDefault();
         dispatchAction(action);
@@ -73,12 +95,12 @@ export function Calculator() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [dispatchAction]);
 
-  const operatorButton = (operation: Operation) => (
+  const renderOperatorButton = (operation: Operation) => (
     <button
       key={operation}
       type="button"
       className="key key--operator"
-      aria-label={operation[0].toUpperCase() + operation.slice(1)}
+      aria-label={operationLabels[operation]}
       aria-pressed={pending?.operation === operation}
       disabled={submissionDisabled}
       onClick={() => dispatchAction({ type: 'operator', value: operation })}
@@ -87,7 +109,7 @@ export function Calculator() {
     </button>
   );
 
-  const digitButton = (digit: string) => (
+  const renderDigitButton = (digit: string) => (
     <button
       key={digit}
       type="button"
@@ -99,12 +121,27 @@ export function Calculator() {
   );
 
   const shownExpression = pending && hasSecondOperand ? `${expression} ${entry}` : expression;
-  const numberSize =
-    entry.length > 18
-      ? 'display__number--long'
-      : entry.length > 10
-        ? 'display__number--medium'
-        : '';
+  let numberSizeClass = '';
+  if (entry.length > 18) {
+    numberSizeClass = 'display__number--long';
+  } else if (entry.length > 10) {
+    numberSizeClass = 'display__number--medium';
+  }
+
+  let feedbackText = '\u00a0';
+  let feedbackRole: 'alert' | 'status' = 'status';
+  if (error) {
+    feedbackText = error;
+    feedbackRole = 'alert';
+  } else if (status === 'loading') {
+    if (isSlow) {
+      feedbackText = 'Still connecting. The free demo service may be starting.';
+    } else {
+      feedbackText = 'Calculating…';
+    }
+  } else if (status === 'success') {
+    feedbackText = 'Calculated';
+  }
 
   return (
     <main className="calculator" aria-labelledby="calculator-heading">
@@ -119,9 +156,9 @@ export function Calculator() {
             {shownExpression || '\u00a0'}
           </p>
           <output
-            ref={numberDisplay}
+            ref={numberDisplayRef}
             tabIndex={0}
-            className={`display__number ${numberSize}`}
+            className={`display__number ${numberSizeClass}`}
             aria-label="Result"
             aria-live="polite"
             aria-atomic="true"
@@ -130,19 +167,7 @@ export function Calculator() {
           </output>
         </div>
         <div className="display__feedback">
-          {error ? (
-            <p role="alert">{error}</p>
-          ) : (
-            <p role="status">
-              {status === 'loading'
-                ? isSlow
-                  ? 'Still connecting. The free demo service may be starting.'
-                  : 'Calculating…'
-                : status === 'success'
-                  ? 'Calculated'
-                  : '\u00a0'}
-            </p>
-          )}
+          <p role={feedbackRole}>{feedbackText}</p>
         </div>
       </section>
       <div className="keypad" role="group" aria-label="Calculator keypad">
@@ -170,14 +195,14 @@ export function Calculator() {
         >
           <BackspaceIcon />
         </button>
-        {operatorButton('divide')}
-        {['7', '8', '9'].map(digitButton)}
-        {operatorButton('multiply')}
-        {['4', '5', '6'].map(digitButton)}
-        {operatorButton('subtract')}
-        {['1', '2', '3'].map(digitButton)}
-        {operatorButton('add')}
-        {digitButton('0')}
+        {renderOperatorButton('divide')}
+        {['7', '8', '9'].map(renderDigitButton)}
+        {renderOperatorButton('multiply')}
+        {['4', '5', '6'].map(renderDigitButton)}
+        {renderOperatorButton('subtract')}
+        {['1', '2', '3'].map(renderDigitButton)}
+        {renderOperatorButton('add')}
+        {renderDigitButton('0')}
         <button
           type="button"
           className="key"

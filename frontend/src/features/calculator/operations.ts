@@ -6,3 +6,10 @@ export const operationSymbols: Record<Operation, string> = {
   multiply: '×',
   divide: '÷',
 };
+
+export const operationLabels: Record<Operation, string> = {
+  add: 'Add',
+  subtract: 'Subtract',
+  multiply: 'Multiply',
+  divide: 'Divide',
+};
