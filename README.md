@@ -92,15 +92,17 @@ npm run typecheck
 npm run build
 ```
 
-Results from October 2, 2026:
+Local checks rerun October 3, 2026:
 
 | Check | Result |
 | --- | --- |
-| Frontend | 79 tests passed; 100% statement, line, and function coverage; 98.96% branch coverage. |
+| Frontend | 85 tests passed in normal and coverage runs; 100% statement, line, and function coverage; 98.93% branch coverage. |
 | Backend | Tests passed; 94.2% overall statement coverage, with 100% for arithmetic, HTTP, and configuration. |
-| Static checks and builds | Go vet/build, TypeScript checking, and Vite build passed. |
-| Integration | 36 hosted API/health/CORS checks passed, plus browser checks for delayed chaining, cancellation, timeout/retry, keyboard input, and desktop/mobile layouts. |
-| Setup | Fresh-clone setup, verification, startup, and shutdown passed on Windows. |
+| Static checks and builds | Prettier check, gofmt check, Go vet/build, TypeScript checking, and Vite build passed. |
+| Integration | Real Go API browser checks passed for delayed chaining, AC/cancellation, division-error recovery, native Enter/Space, and 1440px/320px layouts. |
+| Runner | Windows startup, calculation, Ctrl+C, port release, and temporary-binary cleanup passed. |
+
+Hosted integration and fresh-clone setup were verified on October 2. This readability pass was verified locally; the live deployment is unchanged.
 
 ## API
 
@@ -158,9 +160,13 @@ flowchart LR
   HTTP --> Arithmetic[Pure Go arithmetic]
 ```
 
-The dependency direction keeps arithmetic independent of HTTP and React. The Go standard-library handler validates requests and translates results into JSON. The frontend calculator lives in `frontend/src/features/calculator/`: `Calculator.tsx` contains accessible controls, `useCalculator.ts` owns entry and pending-operation state, and `calculatorApi.ts` handles HTTP. Feature tests live in `tests/`; shared test setup stays in `src/test/`. Bootstrap and global CSS stay in `src/`; calculator styles live in `calculator.css`.
+The dependency direction keeps arithmetic independent of HTTP and React. The Go standard-library handler validates requests and translates results into JSON.
 
-Numeric entry stays as text to preserve decimal input and distinguish an entered zero from a missing operand. A FIFO queue serializes chained requests; cancellation and a request-identity check prevent late responses from overwriting cleared state. The two-operand API keeps the implementation small without an expression parser or persistence.
+- `frontend/src/features/calculator/`: controls in `Calculator.tsx`, entry/request state in `useCalculator.ts`, transport in `calculatorApi.ts`, shared contracts in `types.ts`, labels/symbols in `operations.ts`, and feature styles in `calculator.css`. Its five test suites and deferred-promise helper live in `tests/`.
+- `frontend/src/`: application bootstrap and global CSS; shared test setup in `test/setup.ts`.
+- `backend/`: server configuration in `cmd/server/`, pure arithmetic in `internal/calculator/`, and HTTP in `internal/httpapi/`, with adjacent Go tests.
+
+Numeric entry stays as text to preserve decimal input and distinguish an entered zero from a missing operand. An explicit request context distinguishes standalone equals from a chain that shares one FIFO queue across requests. Cancellation and a request-identity check prevent late responses from overwriting cleared state. The two-operand API keeps the implementation small without an expression parser or persistence.
 
 Both layers use IEEE 754 floating-point numbers. For example, `0.1 + 0.2` returns `0.30000000000000004`, and integers above `Number.MAX_SAFE_INTEGER` can lose precision. Results use ordinary floating-point arithmetic without arbitrary rounding; overflow is rejected.
 
