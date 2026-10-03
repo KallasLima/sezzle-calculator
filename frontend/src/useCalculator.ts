@@ -26,7 +26,7 @@ interface PendingOperation {
 type Activity =
   | { status: 'idle' | 'success' }
   | { status: 'error'; message: string }
-  | { status: 'loading'; kind: 'chain' | 'equals' };
+  | { status: 'loading'; kind: 'chain' | 'equals'; slow: boolean };
 
 interface CalculatorState {
   entry: string;
@@ -36,9 +36,11 @@ interface CalculatorState {
   activity: Activity;
 }
 
-type Evaluation =
+type Evaluation = { feedbackTimer?: ReturnType<typeof setTimeout> } & (
   | { kind: 'equals'; controller: AbortController }
-  | { kind: 'chain'; controller: AbortController; queue: CalculatorAction[] };
+  | { kind: 'chain'; controller: AbortController; queue: CalculatorAction[] });
+
+const SLOW_REQUEST_MS = 8_000;
 
 const initialState: CalculatorState = {
   entry: '0', entryMode: 'first', pending: null, expression: '', activity: { status: 'idle' },
@@ -94,6 +96,7 @@ export function useCalculator() {
     const active = request.current;
     request.current = null;
     if (active?.kind === 'chain') active.queue.length = 0;
+    clearTimeout(active?.feedbackTimer);
     active?.controller.abort();
   }
 
@@ -132,7 +135,12 @@ export function useCalculator() {
       ? { kind: 'chain', controller, queue }
       : { kind: 'equals', controller };
     request.current = active;
-    update({ ...before, activity: { status: 'loading', kind: active.kind } });
+    update({ ...before, activity: { status: 'loading', kind: active.kind, slow: false } });
+    active.feedbackTimer = setTimeout(() => {
+      if (request.current === active) {
+        update({ ...current.current, activity: { status: 'loading', kind: active.kind, slow: true } });
+      }
+    }, SLOW_REQUEST_MS);
 
     let result: number;
     try {
@@ -146,6 +154,8 @@ export function useCalculator() {
       // cannot safely run without its result, so never replay it after failure.
       fail(before, active.kind === 'chain' ? `${message} (queued input cleared)` : message);
       return;
+    } finally {
+      clearTimeout(active.feedbackTimer);
     }
 
     // Abort alone cannot guard a response already completing when AC is pressed.
@@ -212,6 +222,7 @@ export function useCalculator() {
     status: state.activity.status,
     error: state.activity.status === 'error' ? state.activity.message : null,
     isChaining: state.activity.status === 'loading' && state.activity.kind === 'chain',
+    isSlow: state.activity.status === 'loading' && state.activity.slow,
     act: (action: CalculatorAction) => apply(action),
   };
 }

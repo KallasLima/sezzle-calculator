@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { calculate, CalculationError } from './api';
+import { calculate, CalculationError, REQUEST_TIMEOUT_MS } from './api';
 
 const input = { operation: 'add' as const, a: 2, b: 3 };
 const signal = () => new AbortController().signal;
@@ -12,7 +12,11 @@ function respond(body: unknown, status = 200) {
   return fetchMock;
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
+});
 
 describe('calculator API client', () => {
   it('posts the exact contract and returns the server result, including zero', async () => {
@@ -21,8 +25,25 @@ describe('calculator API client', () => {
     await expect(calculate(input, requestSignal)).resolves.toBe(0);
     expect(fetchMock).toHaveBeenCalledWith('/api/calculate', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input), signal: requestSignal,
+      body: JSON.stringify(input), signal: expect.any(AbortSignal),
     });
+    expect(fetchMock.mock.calls[0][1].signal.aborted).toBe(false);
+  });
+
+  it.each(['https://calculator-api.example', 'https://calculator-api.example/', 'https://calculator-api.example///'])(
+    'appends the API path to the configured public origin %s', async (origin) => {
+      vi.stubEnv('VITE_API_BASE_URL', origin);
+      const fetchMock = respond({ result: 5 });
+      await calculate(input, signal());
+      expect(fetchMock).toHaveBeenCalledWith('https://calculator-api.example/api/calculate', expect.any(Object));
+    },
+  );
+
+  it('keeps the local relative URL when the build-time variable is empty', async () => {
+    vi.stubEnv('VITE_API_BASE_URL', '');
+    const fetchMock = respond({ result: 5 });
+    await calculate(input, signal());
+    expect(fetchMock).toHaveBeenCalledWith('/api/calculate', expect.any(Object));
   });
 
   it.each([-1.25, 0.30000000000000004, 1.7976931348623157e308])('preserves result %s without rounding', async (result) => {
@@ -57,20 +78,41 @@ describe('calculator API client', () => {
 
   it('gives an actionable connection failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
-    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'CONNECTION_FAILED', message: expect.stringContaining('backend is running') });
+    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'CONNECTION_FAILED', message: expect.stringContaining('Check your connection') });
   });
 
   it('reports proxy/service failures even when the body is empty', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 500 })));
-    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'CONNECTION_FAILED', message: expect.stringContaining('backend is running') });
+    await expect(calculate(input, signal())).rejects.toMatchObject({ code: 'CONNECTION_FAILED', message: expect.stringContaining('Please try again') });
   });
 
   it('preserves cancellation instead of reporting a connection failure', async () => {
     const controller = new AbortController();
-    controller.abort();
     const error = new DOMException('Aborted', 'AbortError');
+    controller.abort(error);
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error));
     await expect(calculate(input, controller.signal)).rejects.toBe(error);
+  });
+
+  it('applies the total timeout while reading the response body and releases its timer', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async (_url: string, options: RequestInit) => ({
+      status: 200, ok: true,
+      json: () => new Promise((_resolve, reject) => {
+        options.signal!.addEventListener('abort', () => reject(options.signal!.reason), { once: true });
+      }),
+    })));
+    const pending = expect(calculate(input, signal())).rejects.toMatchObject({ code: 'REQUEST_TIMEOUT' });
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
+    await pending;
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('removes the deadline timer after a successful response', async () => {
+    vi.useFakeTimers();
+    respond({ result: 5 });
+    await calculate(input, signal());
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it.each([{ ...input, a: Infinity }, { ...input, b: NaN }])('rejects non-finite operands before serialization', async (request) => {

@@ -14,7 +14,7 @@ function BackspaceIcon() {
 
 export function Calculator() {
   const calculator = useCalculator();
-  const { act, entry, pending, hasSecondOperand, expression, status, error, isChaining } = calculator;
+  const { act, entry, pending, hasSecondOperand, expression, status, error, isChaining, isSlow } = calculator;
   const submissionDisabled = status === 'loading' && !isChaining;
   const numberDisplay = useRef<HTMLOutputElement>(null);
 
@@ -67,7 +67,9 @@ export function Calculator() {
         <output ref={numberDisplay} tabIndex={0} className={`display__number ${numberSize}`} aria-label="Result" aria-live="polite" aria-atomic="true">{entry}</output>
       </div>
       <div className="display__feedback">
-        {error ? <p role="alert">{error}</p> : <p role="status">{status === 'loading' ? 'Calculating…' : status === 'success' ? 'Calculated' : '\u00a0'}</p>}
+        {error ? <p role="alert">{error}</p> : <p role="status">{status === 'loading'
+          ? isSlow ? 'Still connecting. The free demo service may be starting.' : 'Calculating…'
+          : status === 'success' ? 'Calculated' : '\u00a0'}</p>}
       </div>
     </section>
     <div className="keypad" role="group" aria-label="Calculator keypad">
