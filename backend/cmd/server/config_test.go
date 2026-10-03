@@ -14,11 +14,50 @@ func TestLoadConfig(t *testing.T) {
 		env  map[string]string
 		want config
 	}{
-		{"local defaults", nil, config{host: "127.0.0.1", port: "8080"}},
-		{"hosting", map[string]string{"HOST": "0.0.0.0", "PORT": "10000", "ALLOWED_ORIGIN": "https://calculator.example.com"}, config{host: "0.0.0.0", port: "10000", allowedOrigin: "https://calculator.example.com"}},
-		{"local separate origin", map[string]string{"ALLOWED_ORIGIN": "http://localhost:5173"}, config{host: "127.0.0.1", port: "8080", allowedOrigin: "http://localhost:5173"}},
-		{"IPv6", map[string]string{"HOST": "::1", "PORT": "65535", "ALLOWED_ORIGIN": "http://[::1]:5173"}, config{host: "::1", port: "65535", allowedOrigin: "http://[::1]:5173"}},
-		{"minimum port", map[string]string{"PORT": "1"}, config{host: "127.0.0.1", port: "1"}},
+		{
+			name: "local defaults",
+			want: config{host: "127.0.0.1", port: "8080"},
+		},
+		{
+			name: "hosting",
+			env: map[string]string{
+				"HOST":           "0.0.0.0",
+				"PORT":           "10000",
+				"ALLOWED_ORIGIN": "https://calculator.example.com",
+			},
+			want: config{
+				host:          "0.0.0.0",
+				port:          "10000",
+				allowedOrigin: "https://calculator.example.com",
+			},
+		},
+		{
+			name: "local separate origin",
+			env:  map[string]string{"ALLOWED_ORIGIN": "http://localhost:5173"},
+			want: config{
+				host:          "127.0.0.1",
+				port:          "8080",
+				allowedOrigin: "http://localhost:5173",
+			},
+		},
+		{
+			name: "IPv6",
+			env: map[string]string{
+				"HOST":           "::1",
+				"PORT":           "65535",
+				"ALLOWED_ORIGIN": "http://[::1]:5173",
+			},
+			want: config{
+				host:          "::1",
+				port:          "65535",
+				allowedOrigin: "http://[::1]:5173",
+			},
+		},
+		{
+			name: "minimum port",
+			env:  map[string]string{"PORT": "1"},
+			want: config{host: "127.0.0.1", port: "1"},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
