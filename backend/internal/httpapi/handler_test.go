@@ -97,7 +97,7 @@ func TestMethodNotAllowed(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			request := httptest.NewRequest(method, "/api/calculate", nil)
 			response := httptest.NewRecorder()
-			httpapi.NewHandler().ServeHTTP(response, request)
+			httpapi.NewHandler("").ServeHTTP(response, request)
 			assertError(t, response, http.StatusMethodNotAllowed, "INVALID_INPUT")
 			if got := response.Header().Get("Allow"); got != http.MethodPost {
 				t.Errorf("Allow = %q, want POST", got)
@@ -109,7 +109,7 @@ func TestMethodNotAllowed(t *testing.T) {
 func TestUnknownRoute(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/api/unknown", nil)
 	response := httptest.NewRecorder()
-	httpapi.NewHandler().ServeHTTP(response, request)
+	httpapi.NewHandler("").ServeHTTP(response, request)
 	if response.Code != http.StatusNotFound {
 		t.Errorf("status = %d, want 404", response.Code)
 	}
@@ -119,7 +119,7 @@ func post(body string) *httptest.ResponseRecorder {
 	request := httptest.NewRequest(http.MethodPost, "/api/calculate", strings.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
 	response := httptest.NewRecorder()
-	httpapi.NewHandler().ServeHTTP(response, request)
+	httpapi.NewHandler("").ServeHTTP(response, request)
 	return response
 }
 

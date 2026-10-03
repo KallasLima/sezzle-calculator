@@ -26,10 +26,15 @@ type errorResponse struct {
 }
 
 // NewHandler returns the service's HTTP routes. It does not start a server.
-func NewHandler() http.Handler {
+func NewHandler(allowedOrigin string) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/calculate", calculate)
-	return mux
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, struct {
+			Status string `json:"status"`
+		}{Status: "ok"})
+	})
+	return withCORS(mux, allowedOrigin)
 }
 
 func calculate(w http.ResponseWriter, r *http.Request) {
