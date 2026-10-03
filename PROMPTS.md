@@ -24,15 +24,24 @@ Architecture
 API contract
 POST /api/calculate
 Request:
+
+```json
 {"operation":"add","a":2,"b":3}
+```
 
 Supported operations: add, subtract, multiply, divide.
 
 Successful response: HTTP 200
+
+```json
 {"result":5}
+```
 
 Invalid request: HTTP 400
+
+```json
 {"error":{"code":"INVALID_INPUT","message":"A useful explanation."}}
+```
 
 Use DIVISION_BY_ZERO for division by zero and RESULT_OUT_OF_RANGE when a calculation produces a non-finite result.
 
@@ -208,7 +217,7 @@ Frontend settings:
 - Root Directory: frontend
 - Build Command: npm ci && npm run build
 - Publish Directory: dist
-- Environment: SKIP_INSTALL_DEPS=true; VITE_API_BASE_URL=<actual backend HTTPS origin>
+- Environment: SKIP_INSTALL_DEPS=true; `VITE_API_BASE_URL=<actual backend HTTPS origin>`
 - Pin a supported Node version compatible with package.json and the tested build.
 - Auto-deploy and automatic PR previews: off
 - No SPA catch-all is needed for the current single-page root-only app. Do not add speculative routes.
@@ -272,7 +281,6 @@ Preserve application behavior. Record this exact prompt in PROMPTS.md, then comm
 
 ## 6. Public repository publication (2026-10-03)
 
-```text
 Make https://github.com/KallasLima/sezzle-calculator public so the assessment reviewers can access the code, README, prompt record, and demo without an invitation.
 
 This explicitly supersedes my earlier instruction to keep this repository private. It authorizes changing this repository's visibility to public after the checks below. Keep this task focused on publication; do not submit the assessment or contact anyone.
@@ -287,14 +295,11 @@ Use the supported GitHub CLI/API to change this exact repository's visibility to
 
 Finish with the public repository URL, final pushed commit, the anonymous-access checks performed, and any real remaining limitation.
 
-```
-
 ## 7. Frontend and runner readability (2026-10-03)
 
-```text
 The application meets the assessment's functional requirements, but the frontend and development runner need a deliberate readability pass. Passing requirements and tests does not make every implementation choice pleasant to maintain. The useful changes below are concentrated and do not call for a new architecture.
 
-## 1. Make formatting consistent and reproducible
+### 1. Make formatting consistent and reproducible
 
 **Evidence:** `frontend/src/Calculator.tsx:26-88`, `frontend/src/useCalculator.ts:45-79`, `frontend/src/styles.css:17-45`, `scripts/project.mjs:111-127`. Multiple statements, object fields, JSX attributes, and CSS declarations are routinely compressed onto single lines. There is no formatter configuration or format-check command in the root/frontend manifests. Go's existing formatting passes `gofmt -l`.
 
@@ -302,7 +307,7 @@ The application meets the assessment's functional requirements, but the frontend
 
 Prettier handles layout; it does not replace the manual work of simplifying control flow, naming values, and introducing braces. Keep `gofmt` for Go. Additional lint plugins are not prerequisites for this cleanup.
 
-## 2. Give the calculator a feature boundary
+### 2. Give the calculator a feature boundary
 
 **Evidence:** `frontend/src` contains the calculator component, hook, API client, five test files, and application-wide CSS at the same level. `main.tsx:5-6` imports the feature directly from that flat directory.
 
@@ -312,7 +317,7 @@ Use descriptive filenames, such as `calculatorApi.ts` and `calculator.css`. Move
 
 Update imports, mock paths, entrypoint CSS imports, documentation references, and coverage discovery. Feature-local test support must not accidentally become production coverage; exclude precisely test/helper paths, never the entire calculator feature. No empty future-feature folders, global services hierarchy, barrel-export maze, or workspace migration.
 
-## 3. Make asynchronous intent explicit in the hook
+### 3. Make asynchronous intent explicit in the hook
 
 **Evidence:** `useCalculator.ts:122-136` chooses chain mode from the presence of a queue, including `[]`. Call sites at lines197/201 use positional optional arguments and `undefined` to express intent. Understanding `evaluate`, `drain`, and `apply` requires tracking this convention across several functions.
 
@@ -322,7 +327,7 @@ Use names that explain responsibility: `stateRef`, `activeRequestRef`, `dispatch
 
 Expand entry-edit branches, especially sign handling at line67. Organize evaluation into recognizable phases: validate, start request, handle failure, commit result, resume queued actions. Extract a helper only when it names a real phase or pure transition. Keep the state/ref synchronization, request identity check, timer cleanup, and ordered replay. They solve actual races and are not redundant code to remove. A reducer library, state-machine framework, or replacement of the whole hook is unnecessary.
 
-## 4. Separate presentation decisions from JSX
+### 4. Separate presentation decisions from JSX
 
 **Evidence:** `Calculator.tsx:27-40` combines keyboard filtering, key translation, and dispatch. Lines60 and70-72 embed nested conditional expressions in presentation. Rendering is harder to scan because the reader must simultaneously decode status logic and markup.
 
@@ -332,7 +337,7 @@ Format the component first. Extract a display or keypad component only if that l
 
 The hook returns a new `act` function per render, so the keyboard listener effect is reattached per render. Cleanup is correct; this is not a proven bug or meaningful performance bottleneck. Do not add memoization everywhere as part of a readability task.
 
-## 5. Make API validation readable without weakening it
+### 5. Make API validation readable without weakening it
 
 **Evidence:** `api.ts:24-30` compresses timeout/cancellation setup; lines61-71 contain a long sequence of structural checks inside nested branches. The outer catch/finally and inner fetch/JSON catches serve different purposes.
 
@@ -340,7 +345,7 @@ The hook returns a new `act` function per render, so the keyboard listener effec
 
 Do not introduce a schema dependency, generic HTTP client, retry abstraction, or global error framework. Do not collapse the nested catches without preserving their distinct error behavior. Update the 5xx comment to describe both the local proxy and hosted service responses.
 
-## 6. Make tests easier to trust and extend
+### 6. Make tests easier to trust and extend
 
 **Evidence:** `Calculator.test.tsx:20` and `Calculator.chaining.test.tsx:11` duplicate the same deferred-promise helper, with callback names `yes`/`no` and compressed assignments. The keypad suite creates a new user-event session in every `press` call (line16); one keyboard test creates several within one scenario (lines250-255). Most tests have useful behavior-based names and assertions, which should be retained.
 
@@ -353,7 +358,7 @@ Do not introduce a schema dependency, generic HTTP client, retry abstraction, or
 
 Retain cancellation, late-response, queued-input, overflow, retry, and timer-cleanup cases. Reorganizing tests must not reduce coverage by changing exclusions. The existing deterministic309-digit regression should remain deterministic.
 
-## 7. Separate global and feature CSS
+### 7. Separate global and feature CSS
 
 **Evidence:** `styles.css:17-22` mixes resets, root layout, calculator layout, and a global `h1` rule. Responsive `h1` styling is also global. `--purple` at line12 is defined but unused.
 
@@ -361,7 +366,7 @@ Retain cancellation, late-response, queued-input, overflow, retry, and timer-cle
 
 Existing class names and CSS custom properties are adequate. CSS Modules, a utility framework, or a new design system are not needed.
 
-## 8. Simplify the local runner's presentation and names
+### 8. Simplify the local runner's presentation and names
 
 **Evidence:** `scripts/project.mjs:84-142` nests process startup, shutdown, waiting, and cleanup; lines111-127 pack promises, loops, callbacks, and ternaries together. `atLeast`, `capture`, `run`, and `npm` are overly generic within a script with multiple responsibilities. The process-tree comment at line102 is broader than its Windows direct-child kill implementation.
 
@@ -369,13 +374,13 @@ Existing class names and CSS custom properties are adequate. CSS Modules, a util
 
 Do not change process-killing policy or replace the portable runner during a cosmetic cleanup. The combined runner already passed start/stop verification. Its implementation needs clarity, not an unverified redesign. Keep this in a separate commit from UI changes and verify local startup, calculation, Ctrl+C, port release, and temporary-binary cleanup if it is refactored.
 
-## 9. Keep the backend largely intact
+### 9. Keep the backend largely intact
 
 The Go package layout, pure arithmetic, HTTP boundary, error mapping, and table-driven tests are appropriate. `gofmt -l backend` returned no files. Short Go receiver/local names are not automatically readability problems.
 
 The very long positional config-test cases (`backend/cmd/server/config_test.go:17-20`) would read better as multiline keyed cases. The origin-validation condition could use a named predicate if expanded formatting still leaves it difficult to read. These are secondary edits, not reasons to split the small HTTP handler into layers or move every Go test into a separate directory.
 
-## Change order and proof
+### Change order and proof
 
 1. Establish formatting and make mechanical formatting a reviewable commit.
 2. Move the calculator feature/tests, fix imports/config paths, and preserve coverage scope.
@@ -385,11 +390,8 @@ The very long positional config-test cases (`backend/cmd/server/config_test.go:1
 
 Run the existing normal/coverage suites, TypeScript checking, Go tests/vet/build, and frontend build on the final code. Recheck real delayed chaining, AC/late responses, division-error recovery, focused-button Enter/Space, and320px mobile layout. Keep visual appearance/API behavior unchanged and preserve the previously verified timeout/body-read behavior. Do not raise timeouts, weaken assertions, or broaden coverage exclusions to obtain green checks.
 
-```
-
 ## 8. Deploy reviewed frontend (2026-10-03)
 
-```text
 Use the installed Render plugin to deploy the reviewed frontend to the existing free Static Site:
 
 First inspect the current Git state and Render deployment. If the reviewed frontend is already deployed, verify it instead of creating a duplicate deployment. If main has advanced, inspect the diff: documentation-only changes may be included; materially different application code needs validation before deployment.
@@ -411,4 +413,7 @@ After successful deployment verification, update the README's statement that the
 
 Finish with the live URL, deployed commit, final repository commit, verification results, and any concrete remaining blocker. Do not submit the assessment or send any email.
 
-```
+## 9. Prompt log formatting (2026-10-03)
+
+Make `PROMPTS.md` consistent: render every prompt as normal Markdown. Remove the outer code fences around later prompts, but retain code fences for actual code or JSON examples. Use consistent heading levels so each prompt is clearly separated.
+Preserve the original wording and order. Check the rendered Markdown, then commit and push this documentation-only change using a small Conventional Commit. No application changes, deployment, or test-suite rerun needed.
