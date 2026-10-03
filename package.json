@@ -1,0 +1,13 @@
+{
+  "name": "sezzle-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.15.0" },
+  "scripts": {
+    "doctor": "node scripts/project.mjs doctor",
+    "setup": "node scripts/project.mjs setup",
+    "dev": "node scripts/project.mjs dev",
+    "verify": "node scripts/project.mjs verify"
+  }
+}
