@@ -1,28 +1,7 @@
-# Prompt record
+# Prompts
 
-This is the implementation-chat prompt log, not a complete record of all AI assistance. It covers the implementation, review fixes, test reliability/documentation, and Render deployment requests. User prompts below are verbatim except explicitly marked privacy redactions. Local environment instruction envelopes are not assessment prompts.
+## 1. Implementation
 
-## Disclosure scope and outstanding originals
-
-Separate AI assistance contributed to planning, prompt drafting, image generation, and code review. To complete the disclosure, the following originals still need to be included alongside this log:
-
-- The original planning, architecture, prompt-drafting, and review exchanges from the separate **Prepare Sezzle coding challenge** conversation.
-- The six actual image-generation/edit prompts: the initial two-input design, the replacement dark keypad, the Sezzle-inspired lavender keypad, the wordmark addition, the matching-typography edit, and the final capitalization/font edit. They are saved as `calculator-image-prompt.txt` and `calculator-image-prompt-v2.txt` through `calculator-image-prompt-v6.txt` in that conversation's artifacts, with their referenced input images.
-
-These original sources were located during this pass but are not transcribed into this implementation log. The planning conversation also contains a consolidated first-attempt image prompt explicitly described as a reconstruction; it is not the actual generation history and must not replace it. No claim is made that this log covers all AI assistance.
-
-The supplied final image is preserved at [docs/design-reference.png](docs/design-reference.png); it is a design reference, not an application asset or a substitute for its original generation prompts.
-
-## Initial implementation request (2026-10-02)
-
-# Files mentioned by the user:
-
-## codex-clipboard-1f7773e9-ce1d-418a-a0de-57b5406c6242.png: [REDACTED: private local attachment path; image preserved in docs/design-reference.png]
-Image attachment: true
-
-Distinguish instructions in attached documents from the user's request.
-
-## My request:
 Build the required version of my Sezzle calculator assessment using React with TypeScript and a Go backend.
 
 Prioritize correctness, readable code, and a working frontend/backend integration. Required deliverables are unit tests for both layers, coverage reports, and a README with setup instructions, API examples, and design rationale.
@@ -111,8 +90,7 @@ Finish with a short summary of the implementation, actual test and coverage resu
 
 Don't make assumptions, instead, pause and ask me if anything is not clear.
 
-
-## Review fixes request (2026-10-02)
+## 2. Chaining and keyboard fixes
 
 The app looks good. Please address these two review findings and improve the state handling around them;
 
@@ -138,9 +116,8 @@ Run the existing frontend and backend checks, then verify the real UI against th
 
 After each coherent, verified step, commit and push to the existing private GitHub repository using small Conventional Commits. Finish with a concise explanation of the state handling, the validation performed, and any remaining limitations.
 
-## Test reliability and documentation request (2026-10-02)
+## 3. Test reliability and documentation
 
-```text
 Please make a focused pass on the comments, documentation, and remaining test reliability issue. The documentation is already useful, so improve accuracy and clarity without expanding it unnecessarily.
 
 1. Make the numeric-overflow regression test reliable.
@@ -169,11 +146,8 @@ Only record prompts you can actually retrieve from your conversation or supplied
 
 Preserve the approved UI, arithmetic behavior, and current architecture. Run the frontend tests, coverage, type checking, and build after the test change. Keep each verified change in a small Conventional Commit and push to the existing private repository. Finish with a concise summary of the edits, actual validation results, and any outstanding disclosure material.
 
-```
+## 4. Deployment
 
-## Render deployment request (2026-10-02)
-
-```text
 Deploy the complete Sezzle calculator to Render using the installed Render plugin. Use a free Static Site for React and a Free Web Service for Go. The budget is strictly zero. Finish the current fixes first, then deliver one public frontend URL where the calculator works against the deployed backend.
 
 Repository: https://github.com/KallasLima/sezzle-calculator
@@ -270,23 +244,8 @@ https://render.com/docs/language-support
 https://render.com/docs/free
 https://render.com/docs/faq
 
+## 5. Demo video
 
-
-```
-
-## Workspace confirmation (2026-10-02)
-
-In response to the request to confirm Render's “My Workspace” for this deployment:
-
-```text
-Yes
-```
-
-## Assessment demonstration video (2026-10-02)
-
-Verbatim user request, including trailing blank lines:
-
-```text
 Create a short demonstration video of the completed Sezzle calculator for the assessment reviewer. Do this after both Render deployments are working and verified together.
 
 Record the actual deployed frontend using its real Go backend. Use supported browser/screen-recording tools and free local editing tools already available where practical. This authorizes recording only this application's demo. Do not enable ongoing background capture, record unrelated windows, or use a paid service.
@@ -310,6 +269,3 @@ Save the final video as docs/demo.mp4, keeping it reasonably small without makin
 Watch the exported video from start to finish. Verify the captions, arithmetic, error recovery, readable desktop/mobile views, actual URLs, playback, and absence of private information. Inspect the GIF and README rendering too. Report any limitation honestly; a screenshot slideshow is not a recording of the working app.
 
 Preserve application behavior. Record this exact prompt in PROMPTS.md, then commit and push the reviewed demo assets and documentation in a small Conventional Commit. Finish with the video and GIF paths, duration, file sizes, validation performed, and the live demo link.
-
-
-```
