@@ -8,11 +8,11 @@ The free API can take about a minute to wake up on the first calculation. The di
 
 ## Demo
 
-[<img src="docs/demo-preview.gif" alt="Recorded keypad demonstration: enter 12, multiply by 2, and receive 24 from the deployed Go API" width="300">](docs/demo.mp4?raw=true)
+[<img src="docs/demo-preview.gif" alt="Recorded keypad demonstration: enter 12, multiply by 2, and receive 24 from the deployed Go API" width="300">](docs/demo.mp4)
 
-[Watch or download the 53-second MP4](docs/demo.mp4?raw=true) · [Live calculator](https://sezzle-calculator-ur1z.onrender.com) · [Still screenshot](docs/deployed-calculator.jpg)
+[Open the 53-second MP4](docs/demo.mp4) · [Live calculator](https://sezzle-calculator-ur1z.onrender.com) · [Still screenshot](docs/deployed-calculator.jpg)
 
-The captioned, silent recording shows real keypad input, left-to-right chaining, keyboard editing, division-by-zero recovery, and the mobile layout. The MP4 is 1080p H.264 (0.94 MB); the 8-second GIF preview is 160 KB. Media links require access to this private repository; download the MP4 if GitHub does not play it inline.
+The captioned, silent recording shows real keypad input, left-to-right chaining, keyboard editing, division-by-zero recovery, and the mobile layout. The MP4 is 1080p H.264 (0.94 MB); the 8-second GIF preview is 160 KB. Media links require access to this private repository. On the MP4 file page, use **Download raw file** to save and play the video locally; GitHub does not show an inline player here.
 
 Try it in 30 seconds: enter `12 × 2 =` to get `24`, press AC, then quickly type `2 + 3 * 4 =` to get `20`. Try `8 ÷ 0 =`, correct the second operand, and retry. Tab to a key and use Enter or Space; Escape clears.
 
